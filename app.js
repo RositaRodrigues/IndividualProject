@@ -8,13 +8,13 @@ var square = 50;
 var nodeLimit = Math.floor((w - 2 * square) / (square + edgeLength)) + 1; // use for insert check
 var topY = h / 3;
 var bottomY = 2*h/3;
-// var dataset = [ 5, 10, 13, 19, 21, 25, 22, 18, 15, 13,
-                // 11, 12, 15, 20, 18, 17, 16, 18, 23, 25 ];
-// var elements = [ 10, 15 ];
-// var elements = [ 5, 10, 16, 19, 11];
-var elements = [ 5, 10, 16, 19, 11, 15, 20, 17];
+var elements1 = [ 10, 15 ];
+var elements2 = [ 5, 10, 16, 19, 11];
+var elements3 = [ 5, 10, 16, 19, 11, 15, 20, 17];
+var elements = elements2;
 var dataset = [];
 var links = [];
+
 //Create SVG element
 var svg = d3.select("body")
             .append("svg")
@@ -22,6 +22,7 @@ var svg = d3.select("body")
             .attr("height", h);
 
 function restart() {
+  svg.selectAll("*").remove();
   dataset = [];
   links = [];
   var index = 0;
@@ -32,7 +33,6 @@ function restart() {
       xPos: frame() + index * (square + edgeLength),
       yPos: topY
     }
-    console.log("pushed data " + (index + 1) + " times");
     dataset.push(data);
 
     if (index > 0) {
@@ -40,7 +40,6 @@ function restart() {
         source: dataset[index - 1],
         target: dataset[index]
       }
-      console.log("pushed link " + (index + 1) + " times");
       links.push(link);
     }
 
@@ -58,24 +57,6 @@ svg.append('svg:defs').append('svg:marker')
     .attr('d', 'M0,-5L10,0L0,5')
     .attr('fill', '#000');
 
-// svg.selectAll("rect")
-//    .data(dataset)
-//    .enter()
-//    .append("rect")
-//    .attr("x", function(d, i) {
-//      return i * (w / dataset.length);
-//     })
-//    .attr("y", function(d) {
-//      return h - (d * 4);
-//    })
-//    .attr("width", w / dataset.length - barPadding)
-//    .attr("height", function(d) {
-//      return d * 4;
-//    })
-//    .attr("fill", function(d) {
-//      return "rgb(0, 0, " + (d * 10) + ")";
-//    });
-
 svg.selectAll("rect")
   .data(dataset)
   .enter()
@@ -83,11 +64,8 @@ svg.selectAll("rect")
   .attr("x", function(d) {
     return d.xPos;
   })
-  // .attr("x", function(d, i) {
-  //   return frame() + i * (square + edgeLength);
-  //  })
   .attr("y", function(d) {
-    return d.yPos; //topY
+    return d.yPos; // topY
   })
   .attr("width", square)
   .attr("height", square)
@@ -122,10 +100,6 @@ svg.selectAll("text")
   .attr("x", function(d) {
     return d.xPos + square/2;
   })
-  // .attr("x", function(d, i) {
-  //   // return i * (w / dataset.length) + (w / dataset.length - barPadding) / 2;
-  //       return frame() + i * (square + edgeLength) + square / 2;
-  //  })
    .attr("y", function(d) {
         return d.yPos + square/ 2 + 7 ; // d.yPos = topY
    })
@@ -137,15 +111,32 @@ svg.selectAll("text")
 }
 
 function frame() {
-    // return (w - square) / 2 - (dataset.length - 1) * (square + edgeLength);
     return (w - elements.length * square - (elements.length - 1) * edgeLength) / 2;
 }
 
 function addNode() {
   restart();
-  console.log(frame());
-  console.log(links);
-  console.log(dataset);
+  console.log("addNode clicked");
+  // console.log(links);
+  // console.log(dataset);
+}
+
+function loadElements1() {
+  console.log("loadElements1 clicked");
+  elements = elements1;
+  restart();
+}
+
+function loadElements2() {
+  console.log("loadElements2 clicked");
+  elements = elements2;
+  restart();
+}
+
+function loadElements3() {
+  console.log("loadElements3 clicked");
+  elements = elements3;
+  restart();
 }
 
 restart();
