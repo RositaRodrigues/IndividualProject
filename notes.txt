@@ -1,0 +1,5 @@
+Startup:
+python -m http.server 8888 &.
+
+URL:
+http://localhost:8888/
