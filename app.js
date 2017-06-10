@@ -106,39 +106,6 @@ function restart() {
          .attr("font-size", "20px")
          .attr("fill", "white")
          .attr("text-anchor", "middle");
-/*
-  squares.data(elements)
-    .enter()
-    .append("rect")
-    .attr("x", function(d) {
-      return d.xPos;
-    })
-    .attr("y", function(d) {
-      return d.yPos;
-    })
-    .attr("width", square)
-    .attr("height", square)
-    .attr("fill", function(d) {
-      return "rgb(0, 0, " + (d.value * 10) + ")";
-    });
-
-  text.data(elements)
-    .enter()
-    .append("text")
-    .text(function(d) {
-      return d.value;
-    })
-    .attr("x", function(d) {
-      return d.xPos + square/2;
-    })
-    .attr("y", function(d) {
-      return d.yPos + square/ 2 + 7 ;
-    })
-    .attr("font-family", "sans-serif")
-    .attr("font-size", "20px")
-    .attr("fill", "white")
-    .attr("text-anchor", "middle");
-*/
 
   arrows.data(edges)
     .enter()
@@ -172,7 +139,6 @@ function addNode() {
   } else {
     var newNumber = document.getElementById("value").value;
     var index = document.getElementById("index").value;
-    // values.push(newNumber);
     values.splice(index, 0, +newNumber);
     /*
     "Index: 0   1   2   3 ... n"
@@ -189,7 +155,7 @@ function addNode() {
     // console.log(edges);
     updateData();
     createNewNode(); // (1)
-    moveNewNodeAlong(); // (2)
+    // moveNewNodeAlong(); // (2)
 
     // after (5), delete ids of new element's square/text and arrows
 /*
@@ -198,17 +164,20 @@ function addNode() {
     updateHTML();*/
   }
 }
-/*
+
 function updateData() {
-  squares = squares.data(elements);
-  text = text.data(elements);
+  console.log(elements);
+  nodes = nodes.data(elements);
+  // squares = squares.data(elements);
+  // text = text.data(elements);
   arrows = arrows.data(edges);
 }
 
 function createNewNode() {
   console.log("creating");
-  squares.enter()
-         .append("rect")
+  var newNode = nodes.enter().append("g");
+
+  newNode.append("rect")
          .attr("id", "newNodeSquare")
          .attr("x", 0)
          .attr("y", bottomY)
@@ -218,20 +187,20 @@ function createNewNode() {
            return "rgb(0, 0, " + (d.value * 10) + ")";
          });
 
-   text.enter()
-       .append("text")
-       .text(function(d) {
-         return d.value;
-       })
-       .attr("id", "newNodeText")
-       .attr("x", square/2)
-       .attr("y", bottomY + square/ 2 + 7)
-       .attr("font-family", "sans-serif")
-       .attr("font-size", "20px")
-       .attr("fill", "white")
-       .attr("text-anchor", "middle");
-}
+  newNode.append("text")
+         .text(function(d) {
+           return d.value;
+         })
+         .attr("id", "newNodeText")
+         .attr("x", square/2)
+         .attr("y", bottomY + square/ 2 + 7)
+         .attr("font-family", "sans-serif")
+         .attr("font-size", "20px")
+         .attr("fill", "white")
+         .attr("text-anchor", "middle");
 
+}
+/*
 function moveNewNodeAlong() {
   svg.select("#newNodeSquare")
      .transition()
@@ -344,7 +313,7 @@ function updateVisuals() {
           return d.target.yPos + square/2;
         });
 }
-
+*/
 function loadElements(version) {
   if (version == 1) {
     values = values1.slice();
@@ -359,5 +328,5 @@ function loadElements(version) {
   updateHTML();
   restart();
 }
-*/
+
 restart();
