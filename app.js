@@ -132,13 +132,83 @@ function addNode() {
     // if (duplicate) "no duplicates allowed" ?
   } else {
     var newNumber = document.getElementById("value").value;
-    elements.push(newNumber);
+    var index = document.getElementById("index").value;
+    // elements.push(newNumber);
+    elements.splice(index, 0, newNumber);
+    /*
+    "Index: 0   1   2   3 ... n"
+    (1) enter new node from bottomY
+    (2) move new node to position in between #(index-1) and #index nodes
+    (3) attach new arrow from new node to #index node
+    (4) move #(index-1) node's arrow to point to new node below
+    (5) add #(n+1) label to "Index: " level
+    (5) move all nodes and arrows to correct positions
+    */
+
     convertData();
     updateData();
+    // console.log(nodes);
+    // console.log(edges);
+    createNewNode(); // (1)
+    moveNewNodeAlong(); // (2)
+
+    // after (5), delete ids of new node's square/text and arrows
+/*
     enterElem();
     updateVisuals();
-    updateHTML();
+    updateHTML();*/
   }
+}
+
+function createNewNode() {
+  squares.enter()
+         .append("rect")
+         .attr("id", "newNodeSquare")
+         .attr("x", 0)
+         .attr("y", bottomY)
+         .attr("width", square)
+         .attr("height", square)
+         .attr("fill", function(d) {
+           return "rgb(0, 0, " + (d.value * 10) + ")";
+         });
+
+   text.enter()
+       .append("text")
+       .text(function(d) {
+         return d.value;
+       })
+       .attr("id", "newNodeText")
+       .attr("x", square/2)
+       .attr("y", bottomY + square/ 2 + 7)
+       .attr("font-family", "sans-serif")
+       .attr("font-size", "20px")
+       .attr("fill", "white")
+       .attr("text-anchor", "middle");
+}
+
+function moveNewNodeAlong() {
+  svg.select("#newNodeSquare")
+     .transition()
+     .duration(1000)
+     .attr("x", function(d) {
+       return d.xPos;
+     })
+     .attr("y", function(d) {
+         return bottomY;
+     });
+
+  svg.select("#newNodeText")
+     .transition()
+     .duration(1000)
+     .text(function(d) {
+       return d.value;
+     })
+     .attr("x", function(d) {
+       return d.xPos + square/2;
+     })
+     .attr("y", function(d) {
+         return bottomY + square/2 + 7
+     });
 }
 
 function updateHTML() {
