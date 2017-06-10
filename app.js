@@ -8,12 +8,17 @@ var square = 50;
 var nodeLimit = Math.floor((w - 2 * square) / (square + edgeLength)) + 1; // use for insert check
 var topY = h / 3;
 var bottomY = 2*h/3;
+var maxValue = 25;
 var elements1 = [ 10, 15 ];
-var elements2 = [ 5, 10, 16, 19, 11];
-var elements3 = [ 5, 10, 16, 19, 11, 15, 20, 17];
-var elements = elements2;
-var dataset = [];
-var links = [];
+var elements2 = [ 5, 10, 16, 19, 11 ];
+var elements3 = [ 5, 2, 25, 10, 18 ];
+// var elements3 = [ 5, 10, 16, 19, 11, 15, 20, 17 ];
+var elements = elements3;
+var nodes = [];
+var edges = [];
+var squares;
+var text;
+var arrows;
 
 //Create SVG element
 var svg = d3.select("body")
@@ -21,92 +26,98 @@ var svg = d3.select("body")
             .attr("width", w)
             .attr("height", h);
 
-function restart() {
-  svg.selectAll("*").remove();
-  dataset = [];
-  links = [];
+function convertData() {
+  nodes = [];
+  edges = [];
   var index = 0;
   elements.forEach(function(elem) {
-    var data = {
+    var node = {
       key: index,
       value: elem,
       xPos: frame() + index * (square + edgeLength),
       yPos: topY
     }
-    dataset.push(data);
+    nodes.push(node);
 
     if (index > 0) {
-      var link = {
-        source: dataset[index - 1],
-        target: dataset[index]
+      var edge = {
+        source: nodes[index - 1],
+        target: nodes[index]
       }
-      links.push(link);
+      edges.push(edge);
     }
-
+    console.log("converting data");
     index++;
   });
+}
 
-svg.append('svg:defs').append('svg:marker')
-    .attr('id', 'end-arrow')
-    .attr('viewBox', '0 -5 10 10')
-    .attr('refX', 6)
-    .attr('markerWidth', 3)
-    .attr('markerHeight', 3)
-    .attr('orient', 'auto')
-  .append('svg:path')
-    .attr('d', 'M0,-5L10,0L0,5')
-    .attr('fill', '#000');
+function restart() {
+  //svg.selectAll("*").remove();
+  convertData();
 
-svg.selectAll("rect")
-  .data(dataset)
-  .enter()
-  .append("rect")
-  .attr("x", function(d) {
-    return d.xPos;
-  })
-  .attr("y", function(d) {
-    return d.yPos; // topY
-  })
-  .attr("width", square)
-  .attr("height", square)
-  .attr("fill", function(d) {
-    return "rgb(0, 0, " + (d.value * 10) + ")";
-  });
+  svg.selectAll("rect")
+    .data(nodes)
+    .enter()
+    .append("rect")
+    .attr("x", function(d) {
+      return d.xPos;
+    })
+    .attr("y", function(d) {
+      return d.yPos; // topY
+    })
+    .attr("width", square)
+    .attr("height", square)
+    .attr("fill", function(d) {
+      return "rgb(0, 0, " + (d.value * 10) + ")";
+    });
 
-svg.append('svg:g').selectAll('path')
-  .data(links)
-  .enter()
-  .append("path")
-  .style("marker-start", "")
-  .style("marker-end", "url(#end-arrow)")
-  .style("stroke", "black")
-  .style("stroke-width", "5px")
-  .style("fill", "none")
-  .attr("d", function(d, i) {
-    var sourceX = d.source.xPos + square;
-    var sourceY = d.source.yPos + square / 2;
-    var targetX = d.target.xPos;
-    var targetY = d.target.yPos + square / 2;
-    return 'M' + sourceX + ',' + sourceY + 'L' + targetX + ',' + targetY;
-  });
+  svg.selectAll("text")
+    .data(nodes)
+    .enter()
+    .append("text")
+    .text(function(d) {
+      return d.value;
+    })
+    .attr("x", function(d) {
+      return d.xPos + square/2;
+    })
+    .attr("y", function(d) {
+      return d.yPos + square/ 2 + 7 ; // d.yPos = topY
+    })
+    .attr("font-family", "sans-serif")
+    .attr("font-size", "20px")
+    .attr("fill", "white")
+    .attr("text-anchor", "middle");
+/*
+  svg.append('svg:defs').append('svg:marker')
+      .attr('id', 'end-arrow')
+      .attr('viewBox', '0 -5 10 10')
+      .attr('refX', 6)
+      .attr('markerWidth', 3)
+      .attr('markerHeight', 3)
+      .attr('orient', 'auto')
+    .append('svg:path')
+      .attr('d', 'M0,-5L10,0L0,5')
+      .attr('fill', '#000');
 
-svg.selectAll("text")
-  .data(dataset)
-  .enter()
-  .append("text")
-  .text(function(d) {
-    return d.value;
-  })
-  .attr("x", function(d) {
-    return d.xPos + square/2;
-  })
-   .attr("y", function(d) {
-        return d.yPos + square/ 2 + 7 ; // d.yPos = topY
-   })
-   .attr("font-family", "sans-serif")
-   .attr("font-size", "20px")
-   .attr("fill", "white")
-   .attr("text-anchor", "middle");
+  svg.append('svg:g').selectAll('path')
+    .data(edges)
+    .enter()
+    .append("path")
+    .style("marker-start", "")
+    .style("marker-end", "url(#end-arrow)")
+    .style("stroke", "black")
+    .style("stroke-width", "5px")
+    .style("fill", "none")
+    .attr("d", function(d, i) {
+      var sourceX = d.source.xPos + square;
+      var sourceY = d.source.yPos + square / 2;
+      var targetX = d.target.xPos;
+      var targetY = d.target.yPos + square / 2;
+      return 'M' + sourceX + ',' + sourceY + 'L' + targetX + ',' + targetY;
+    });
+*/
+
 
 }
 
@@ -115,28 +126,137 @@ function frame() {
 }
 
 function addNode() {
-  restart();
   console.log("addNode clicked");
-  // console.log(links);
-  // console.log(dataset);
+  if (elements.length >= nodeLimit) {
+    console.log("max limit reached");
+  } else {
+    var newNumber = Math.round(Math.random() * maxValue);
+    elements.push(newNumber);
+    convertData();
+    updateData();
+    enterElem();
+    updateVisuals();
+    // restart();
+    // console.log(edges);
+    // console.log(nodes);
+  }
+}
+
+function updateData() {
+  squares = svg.selectAll("rect").data(nodes);
+  text = svg.selectAll("text").data(nodes);
+  arrows = svg.append('svg:g').selectAll('path').data(edges);
+}
+
+function enterElem() {
+  squares.enter()
+         .append("rect")
+         .attr("x", w)
+         .attr("y", function(d) {
+           return d.yPos; // topY
+         })
+         .attr("width", square)
+         .attr("height", square)
+         .attr("fill", function(d) {
+           return "rgb(0, 0, " + (d.value * 10) + ")";
+         });
+
+   text.enter()
+       .append("text")
+       .text(function(d) {
+         return d.value;
+       })
+       .attr("x", w + square/2)
+       .attr("y", function(d) {
+         return d.yPos + square/ 2 + 7 ; // d.yPos = topY
+       })
+       .attr("font-family", "sans-serif")
+       .attr("font-size", "20px")
+       .attr("fill", "white")
+       .attr("text-anchor", "middle");
+}
+
+function updateVisuals() {
+  squares.transition()
+         .duration(1000)
+         .attr("x", function(d) {
+           return d.xPos;
+         })
+         .attr("y", function(d) {
+           return d.yPos; // topY
+         });
+
+  text.transition()
+      .duration(1000)
+      .text(function(d) {
+        return d.value;
+      })
+      .attr("x", function(d) {
+        return d.xPos + square/2;
+      })
+      .attr("y", function(d) {
+        return d.yPos + square/ 2 + 7 ; // d.yPos = topY
+      })
 }
 
 function loadElements1() {
-  console.log("loadElements1 clicked");
   elements = elements1;
-  restart();
+  // restart();
+  convertData();
+  redraw();
+  console.log(elements);
 }
 
 function loadElements2() {
-  console.log("loadElements2 clicked");
   elements = elements2;
-  restart();
+  // restart();
+  convertData();
+  redraw();
+  console.log(elements);
 }
 
 function loadElements3() {
-  console.log("loadElements3 clicked");
   elements = elements3;
-  restart();
+  // restart();
+  convertData();
+  redraw();
+  console.log(elements);
+}
+
+function redraw() {
+  svg.selectAll("rect")
+    .data(nodes)
+    .transition()
+    .duration(1000)
+    .attr("x", function(d) {
+      return d.xPos;
+    })
+    .attr("y", function(d) {
+      return d.yPos; // topY
+    })
+    .attr("width", square)
+    .attr("height", square)
+    .attr("fill", function(d) {
+      return "rgb(0, 0, " + (d.value * 10) + ")";
+    });
+
+  svg.selectAll("text")
+    .data(nodes)
+    .transition()
+    .duration(1000)
+    .text(function(d) {
+      return d.value;
+    })
+    .attr("x", function(d) {
+      return d.xPos + square/2;
+    })
+    .attr("y", function(d) {
+      return d.yPos + square/ 2 + 7 ; // d.yPos = topY
+    })
+    .attr("font-family", "sans-serif")
+    .attr("font-size", "20px")
+    .attr("fill", "white")
+    .attr("text-anchor", "middle");
 }
 
 restart();
