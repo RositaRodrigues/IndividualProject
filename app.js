@@ -13,7 +13,7 @@ var elements1 = [ 10, 15 ];
 var elements2 = [ 5, 10, 16, 19, 11 ];
 var elements3 = [ 5, 2, 25, 10, 18 ];
 // var elements3 = [ 5, 10, 16, 19, 11, 15, 20, 17 ];
-var elements = elements3;
+var elements = elements2;
 var nodes = [];
 var edges = [];
 var squares;
@@ -25,6 +25,17 @@ var svg = d3.select("body")
             .append("svg")
             .attr("width", w)
             .attr("height", h);
+
+svg.append('svg:defs').append('svg:marker')
+    .attr('id', 'end-arrow')
+    .attr('viewBox', '0 -5 10 10')
+    .attr('refX', 6)
+    .attr('markerWidth', 3)
+    .attr('markerHeight', 3)
+    .attr('orient', 'auto')
+  .append('svg:path')
+    .attr('d', 'M0,-5L10,0L0,5')
+    .attr('fill', '#000');
 
 function convertData() {
   nodes = [];
@@ -88,19 +99,11 @@ function restart() {
     .attr("font-size", "20px")
     .attr("fill", "white")
     .attr("text-anchor", "middle");
-/*
-  svg.append('svg:defs').append('svg:marker')
-      .attr('id', 'end-arrow')
-      .attr('viewBox', '0 -5 10 10')
-      .attr('refX', 6)
-      .attr('markerWidth', 3)
-      .attr('markerHeight', 3)
-      .attr('orient', 'auto')
-    .append('svg:path')
-      .attr('d', 'M0,-5L10,0L0,5')
-      .attr('fill', '#000');
 
+  console.log(edges);
+/*
   svg.append('svg:g').selectAll('path')
+  // svg.selectAll('path')
     .data(edges)
     .enter()
     .append("path")
@@ -110,15 +113,35 @@ function restart() {
     .style("stroke-width", "5px")
     .style("fill", "none")
     .attr("d", function(d, i) {
+      console.log(i);
+      console.log(d);
       var sourceX = d.source.xPos + square;
       var sourceY = d.source.yPos + square / 2;
       var targetX = d.target.xPos;
       var targetY = d.target.yPos + square / 2;
       return 'M' + sourceX + ',' + sourceY + 'L' + targetX + ',' + targetY;
-    });
-*/
-
-
+    });*/
+    svg.selectAll("line")
+      .data(edges)
+      .enter()
+      .append("line")
+      // .style("marker-start", "")
+      .style("marker-end", "url(#end-arrow)")
+      .style("stroke", "black")
+      .style("stroke-width", "5px")
+      .style("fill", "none")
+      .attr("x1", function(d) {
+        return d.source.xPos + square;
+      })
+      .attr("y1", function(d) {
+        return d.source.yPos + square/2;
+      })
+      .attr("x2", function(d) {
+        return d.target.xPos;
+      })
+      .attr("y2", function(d) {
+        return d.target.yPos + square/2;
+      });
 }
 
 function frame() {
@@ -129,6 +152,7 @@ function addNode() {
   console.log("addNode clicked");
   if (elements.length >= nodeLimit) {
     console.log("max limit reached");
+    // if (duplicate) "no duplicates allowed" ?
   } else {
     var newNumber = Math.round(Math.random() * maxValue);
     elements.push(newNumber);
@@ -145,7 +169,8 @@ function addNode() {
 function updateData() {
   squares = svg.selectAll("rect").data(nodes);
   text = svg.selectAll("text").data(nodes);
-  arrows = svg.append('svg:g').selectAll('path').data(edges);
+  // arrows = svg.append('svg:g').selectAll("path").data(edges);
+  arrows = svg.selectAll("line").data(edges);
 }
 
 function enterElem() {
@@ -174,6 +199,40 @@ function enterElem() {
        .attr("font-size", "20px")
        .attr("fill", "white")
        .attr("text-anchor", "middle");
+/*
+  arrows.enter()
+        .append("path")
+        .style("marker-start", "")
+        .style("marker-end", "url(#end-arrow)")
+        .style("stroke", "black")
+        .style("stroke-width", "5px")
+        .style("fill", "none")
+        .attr("d", function(d) {
+          var sourceX = d.source.xPos + square;
+          var sourceY = d.source.yPos + square / 2;
+          // var targetX = d.target.xPos;
+          // var targetY = d.target.yPos + square / 2;
+          return 'M' + sourceX + ',' + sourceY + 'L' + sourceX + ',' + sourceY;
+        });*/
+  arrows.enter()
+        .append("line")
+        // .style("marker-start", "")
+        .style("marker-end", "url(#end-arrow)")
+        .style("stroke", "black")
+        .style("stroke-width", "5px")
+        .style("fill", "none")
+        .attr("x1", function(d) {
+          return d.source.xPos + square;
+        })
+        .attr("y1", function(d) {
+          return d.source.yPos + square/2;
+        })
+        .attr("x2", function(d) {
+          return d.source.xPos + square;
+        })
+        .attr("y2", function(d) {
+          return d.source.yPos + square/2;
+        });
 }
 
 function updateVisuals() {
@@ -196,7 +255,37 @@ function updateVisuals() {
       })
       .attr("y", function(d) {
         return d.yPos + square/ 2 + 7 ; // d.yPos = topY
-      })
+      });
+
+/*
+  arrows.transition()
+        .duration(1000)
+        .attr("d", function(d) {
+          var sourceX = d.source.xPos + square;
+          var sourceY = d.source.yPos + square / 2;
+          var targetX = d.target.xPos;
+          var targetY = d.target.yPos + square / 2;
+          return 'M' + sourceX + ',' + sourceY + 'L' + targetX + ',' + targetY;
+        });
+        */
+  arrows.transition()
+        .duration(1000)
+        .style("marker-end", "url(#end-arrow)")
+        .style("stroke", "black")
+        .style("stroke-width", "5px")
+        .style("fill", "none")
+        .attr("x1", function(d) {
+          return d.source.xPos + square;
+        })
+        .attr("y1", function(d) {
+          return d.source.yPos + square/2;
+        })
+        .attr("x2", function(d) {
+          return d.target.xPos;
+        })
+        .attr("y2", function(d) {
+          return d.target.yPos + square/2;
+        });
 }
 
 function loadElements1() {
@@ -257,6 +346,23 @@ function redraw() {
     .attr("font-size", "20px")
     .attr("fill", "white")
     .attr("text-anchor", "middle");
+
+  svg.selectAll("lines")
+    .data(edges)
+    .transition()
+    .duration(1000)
+    .attr("x1", function(d) {
+      return d.source.xPos + square;
+    })
+    .attr("y1", function(d) {
+      return d.source.yPos + square/2;
+    })
+    .attr("x2", function(d) {
+      return d.target.xPos;
+    })
+    .attr("y2", function(d) {
+      return d.target.yPos + square/2;
+    });
 }
 
 restart();
