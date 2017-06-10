@@ -5,45 +5,47 @@ var barPadding = 1;
 var defaultEdgeLength = 50;
 var edgeLength = defaultEdgeLength;
 var square = 50;
-var nodeLimit = Math.floor((w - 2 * square) / (square + edgeLength)) + 1;
+var elementLimit = Math.floor((w - 2 * square) / (square + edgeLength)) + 1;
 var topY = h / 3;
 var bottomY = 2*h/3;
 var maxValue = 25;
-var elements1 = [ 10, 15 ];
-var elements2 = [ 5, 10, 16, 19, 11 ];
-var elements3 = [ 5, 2, 25, 10, 18 ];
-var elements4 = [ 5, 10, 16, 19, 11, 15, 20, 17 ];
-var elements = elements1.slice();
-var nodes = [];
+var values1 = [ 10, 15 ];
+var values2 = [ 5, 10, 16, 19, 11 ];
+var values3 = [ 5, 2, 25, 10, 18 ];
+var values4 = [ 5, 10, 16, 19, 11, 15, 20, 17 ];
+var values = values1.slice();
+var elements = [];
 var edges = [];
-var squares;
-var text;
+var indices;
+var indexSquares;
+var indexTexts;
+var nodes;
+var nodeSquares;
+var nodeTexts;
 var arrows;
 
-//Create SVG element
 var svg = d3.select("body")
             .append("svg")
             .attr("width", w)
             .attr("height", h);
 
-
 function convertData() {
-  nodes = [];
+  elements = [];
   edges = [];
   var index = 0;
-  elements.forEach(function(elem) {
-    var node = {
+  values.forEach(function(val) {
+    var element = {
       key: index,
-      value: elem,
+      value: val,
       xPos: frame() + index * (square + edgeLength),
       yPos: topY
     }
-    nodes.push(node);
+    elements.push(element);
 
     if (index > 0) {
       var edge = {
-        source: nodes[index - 1],
-        target: nodes[index]
+        source: elements[index - 1],
+        target: elements[index]
       }
       edges.push(edge);
     }
@@ -54,6 +56,16 @@ function convertData() {
 function restart() {
   convertData();
   svg.selectAll("*").remove();
+
+  indices = svg.append("svg:g").selectAll("g").data(d3.range(values.length));
+  indexSquares = indices.selectAll("rect");
+  indexTexts = indices.selectAll("text");
+
+  nodes = svg.append("svg:g").selectAll("g").data(elements);
+  nodeSquares = nodes.selectAll("rect");
+  nodeTexts = nodes.selectAll("text");
+
+  arrows = svg.selectAll("line");
 
   svg.append('svg:defs').append('svg:marker')
       .attr('id', 'end-arrow')
@@ -66,8 +78,36 @@ function restart() {
       .attr('d', 'M0,-5L10,0L0,5')
       .attr('fill', '#000');
 
-  svg.selectAll("rect")
-    .data(nodes)
+  var newNode = nodes.enter().append("g");
+  newNode.append("rect")
+         .attr("x", function(d) {
+           return d.xPos;
+         })
+         .attr("y", function(d) {
+           return d.yPos;
+         })
+         .attr("width", square)
+         .attr("height", square)
+         .attr("fill", function(d) {
+           return "rgb(0, 0, " + (d.value * 10) + ")";
+         });
+
+  newNode.append("text")
+         .text(function(d) {
+           return d.value;
+         })
+         .attr("x", function(d) {
+           return d.xPos + square/2;
+         })
+         .attr("y", function(d) {
+           return d.yPos + square/ 2 + 7 ;
+         })
+         .attr("font-family", "sans-serif")
+         .attr("font-size", "20px")
+         .attr("fill", "white")
+         .attr("text-anchor", "middle");
+/*
+  squares.data(elements)
     .enter()
     .append("rect")
     .attr("x", function(d) {
@@ -82,8 +122,7 @@ function restart() {
       return "rgb(0, 0, " + (d.value * 10) + ")";
     });
 
-  svg.selectAll("text")
-    .data(nodes)
+  text.data(elements)
     .enter()
     .append("text")
     .text(function(d) {
@@ -99,68 +138,75 @@ function restart() {
     .attr("font-size", "20px")
     .attr("fill", "white")
     .attr("text-anchor", "middle");
+*/
 
-    svg.selectAll("line")
-      .data(edges)
-      .enter()
-      .append("line")
-      .style("marker-end", "url(#end-arrow)")
-      .style("stroke", "black")
-      .style("stroke-width", "5px")
-      .style("fill", "none")
-      .attr("x1", function(d) {
-        return d.source.xPos + square;
-      })
-      .attr("y1", function(d) {
-        return d.source.yPos + square/2;
-      })
-      .attr("x2", function(d) {
-        return d.target.xPos;
-      })
-      .attr("y2", function(d) {
-        return d.target.yPos + square/2;
-      });
+  arrows.data(edges)
+    .enter()
+    .append("line")
+    .style("marker-end", "url(#end-arrow)")
+    .style("stroke", "black")
+    .style("stroke-width", "5px")
+    .style("fill", "none")
+    .attr("x1", function(d) {
+      return d.source.xPos + square;
+    })
+    .attr("y1", function(d) {
+      return d.source.yPos + square/2;
+    })
+    .attr("x2", function(d) {
+      return d.target.xPos;
+    })
+    .attr("y2", function(d) {
+      return d.target.yPos + square/2;
+    });
 }
 
 function frame() {
-    return (w - elements.length * square - (elements.length - 1) * edgeLength) / 2;
+    return (w - values.length * square - (values.length - 1) * edgeLength) / 2;
 }
 
 function addNode() {
-  if (elements.length >= nodeLimit) {
+  if (values.length >= elementLimit) {
     console.log("max limit reached");
     // if (duplicate) "no duplicates allowed" ?
   } else {
     var newNumber = document.getElementById("value").value;
     var index = document.getElementById("index").value;
-    // elements.push(newNumber);
-    elements.splice(index, 0, newNumber);
+    // values.push(newNumber);
+    values.splice(index, 0, +newNumber);
     /*
     "Index: 0   1   2   3 ... n"
-    (1) enter new node from bottomY
-    (2) move new node to position in between #(index-1) and #index nodes
-    (3) attach new arrow from new node to #index node
-    (4) move #(index-1) node's arrow to point to new node below
+    (1) enter new element from bottomY
+    (2) move new element to position in between #(index-1) and #index elements
+    (3) attach new arrow from new element to #index element
+    (4) move #(index-1) element's arrow to point to new element below
     (5) add #(n+1) label to "Index: " level
-    (5) move all nodes and arrows to correct positions
+    (5) move all elements and arrows to correct positions
     */
 
     convertData();
-    updateData();
-    // console.log(nodes);
+    // console.log(elements);
     // console.log(edges);
+    updateData();
     createNewNode(); // (1)
     moveNewNodeAlong(); // (2)
 
-    // after (5), delete ids of new node's square/text and arrows
+    // after (5), delete ids of new element's square/text and arrows
 /*
     enterElem();
     updateVisuals();
     updateHTML();*/
   }
 }
+/*
+function updateData() {
+  squares = squares.data(elements);
+  text = text.data(elements);
+  arrows = arrows.data(edges);
+}
 
 function createNewNode() {
+  console.log("creating");
   squares.enter()
          .append("rect")
          .attr("id", "newNodeSquare")
@@ -210,20 +256,14 @@ function moveNewNodeAlong() {
          return bottomY + square/2 + 7
      });
 }
-
+*/
 function updateHTML() {
-  document.getElementById("index").max = elements.length;
+  document.getElementById("index").max = values.length;
   document.getElementById("index").value = 0;
   document.getElementById("value").max = maxValue;
   document.getElementById("value").value = Math.round(Math.random() * maxValue);
 }
-
-function updateData() {
-  squares = svg.selectAll("rect").data(nodes);
-  text = svg.selectAll("text").data(nodes);
-  arrows = svg.selectAll("line").data(edges);
-}
-
+/*
 function enterElem() {
   squares.enter()
          .append("rect")
@@ -307,17 +347,17 @@ function updateVisuals() {
 
 function loadElements(version) {
   if (version == 1) {
-    elements = elements1.slice();
+    values = values1.slice();
   } else if (version == 2) {
-    elements = elements2.slice();
+    values = values2.slice();
   } else if (version == 3) {
-    elements = elements3.slice();
+    values = values3.slice();
   } else {
-    elements = elements4.slice();
+    values = values4.slice();
   }
   convertData();
   updateHTML();
   restart();
 }
-
+*/
 restart();
