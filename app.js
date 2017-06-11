@@ -57,11 +57,17 @@ function restart() {
   convertData();
   svg.selectAll("*").remove();
 
-  indices = svg.append("svg:g").selectAll("g").data(d3.range(values.length));
+  indices = svg.append("svg:g")
+               .attr("id", "indices")
+               .selectAll("g")
+               .data(d3.range(values.length));
   indexSquares = indices.selectAll("rect");
   indexTexts = indices.selectAll("text");
 
-  nodes = svg.append("svg:g").selectAll("g").data(elements);
+  nodes = svg.append("svg:g")
+             .attr("id", "nodes")
+             .selectAll("g")
+             .data(elements);
   nodeSquares = nodes.selectAll("rect");
   nodeTexts = nodes.selectAll("text");
 
@@ -78,8 +84,16 @@ function restart() {
       .attr('d', 'M0,-5L10,0L0,5')
       .attr('fill', '#000');
 
-  var newNode = nodes.enter().append("g");
+  var newNode = nodes.enter()
+                     .append("g")
+                     .attr("id", function(d, i) {
+                       return "node" + i;
+                     });
+
   newNode.append("rect")
+         .attr("id", function(d, i) {
+           return "nodeSquare" + i;
+         })
          .attr("x", function(d) {
            return d.xPos;
          })
@@ -95,6 +109,9 @@ function restart() {
   newNode.append("text")
          .text(function(d) {
            return d.value;
+         })
+         .attr("id", function(d, i) {
+           return "nodeText" + i;
          })
          .attr("x", function(d) {
            return d.xPos + square/2;
@@ -114,6 +131,9 @@ function restart() {
     .style("stroke", "black")
     .style("stroke-width", "5px")
     .style("fill", "none")
+    .attr("id", function(d, i) {
+      return "edge" + i + (i+1);
+    })
     .attr("x1", function(d) {
       return d.source.xPos + square;
     })
@@ -128,10 +148,11 @@ function restart() {
     });
 }
 
-function frame() {
-    return (w - values.length * square - (values.length - 1) * edgeLength) / 2;
+function frame(newLength) {
+    var length = newLength || values.length;
+    return (w - length * square - (length - 1) * edgeLength) / 2;
 }
-
+/*
 function addNode() {
   if (values.length >= elementLimit) {
     console.log("max limit reached");
@@ -140,15 +161,15 @@ function addNode() {
     var newNumber = document.getElementById("value").value;
     var index = document.getElementById("index").value;
     values.splice(index, 0, +newNumber);
-    /*
-    "Index: 0   1   2   3 ... n"
-    (1) enter new element from bottomY
-    (2) move new element to position in between #(index-1) and #index elements
-    (3) attach new arrow from new element to #index element
-    (4) move #(index-1) element's arrow to point to new element below
-    (5) add #(n+1) label to "Index: " level
-    (5) move all elements and arrows to correct positions
-    */
+
+    // "Index: 0   1   2   3 ... n"
+    // (1) enter new element from bottomY
+    // (2) move new element to position in between #(index-1) and #index elements
+    // (3) attach new arrow from new element to #index element
+    // (4) move #(index-1) element's arrow to point to new element below
+    // (5) add #(n+1) label to "Index: " level
+    // (5) move all elements and arrows to correct positions
+
 
     convertData();
     // console.log(elements);
@@ -158,11 +179,31 @@ function addNode() {
     // moveNewNodeAlong(); // (2)
 
     // after (5), delete ids of new element's square/text and arrows
-/*
-    enterElem();
-    updateVisuals();
-    updateHTML();*/
+
+    // enterElem();
+    // updateVisuals();
+    // updateHTML();
   }
+}
+*/
+
+function addNode() {
+  // 1. create new node with rect and text
+  // 2. move to bottom position
+  // 3. get nodeSquare#index rect x and y attributes; NOT TEXT
+  // 4. create new link for arrow from new rect to nodeSquare#index rect position
+  // 5. get edge#(index-1)#index arrow and point it to new rect position
+  // 6. insert new node into var nodes before node#index
+  // 7. insert new link into var arrows before edge#index#(index+1) // error check for penultimate or last node
+  // 8. insert new value into var values
+  // 9. convertData, updateData, updateVisuals
+
+  var index = document.getElementById("index").value;
+  var value = document.getElementById("value").value;
+  // 1.
+  createNewNode(index, value);
+  // 2
+
 }
 
 function updateData() {
@@ -173,9 +214,24 @@ function updateData() {
   arrows = arrows.data(edges);
 }
 
-function createNewNode() {
+function createNewNode(index, val) {
   console.log("creating");
-  var newNode = nodes.enter().append("g");
+
+  var newElem = {
+    key: index,
+    value: val,
+    xPos: frame(values.length+1) + index * (square + edgeLength),
+    yPos: topY
+  }
+
+  var newNode = svg.append("g")
+                   .attr("id", "newNode")
+                   .selectAll("g")
+                   .data([newElem])
+                   .enter()
+                   .append("g")
+                   .attr("id", "newNodeG");
+
 
   newNode.append("rect")
          .attr("id", "newNodeSquare")
