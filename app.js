@@ -39,8 +39,8 @@ function convertData() {
     var element = {
       key: index,
       value: val,
-      xPos: frame() + index * (square + edgeLength),
-      yPos: topY
+      x: frame() + index * (square + edgeLength),
+      y: topY
     }
     elements.push(element);
 
@@ -97,10 +97,10 @@ function restart() {
            return "nodeSquare" + i;
          })
          .attr("x", function(d) {
-           return d.xPos;
+           return d.x;
          })
          .attr("y", function(d) {
-           return d.yPos;
+           return d.y;
          })
          .attr("width", square)
          .attr("height", square)
@@ -116,10 +116,10 @@ function restart() {
            return "nodeText" + i;
          })
          .attr("x", function(d) {
-           return d.xPos + square/2;
+           return d.x + square/2;
          })
          .attr("y", function(d) {
-           return d.yPos + square/ 2 + 7 ;
+           return d.y + square/ 2 + 7 ;
          })
          .attr("font-family", "sans-serif")
          .attr("font-size", "20px")
@@ -137,16 +137,16 @@ function restart() {
       return "arrow" + i + (i+1);
     })
     .attr("x1", function(d) {
-      return d.source.xPos + square;
+      return d.source.x + square;
     })
     .attr("y1", function(d) {
-      return d.source.yPos + square/2;
+      return d.source.y + square/2;
     })
     .attr("x2", function(d) {
-      return d.target.xPos;
+      return d.target.x;
     })
     .attr("y2", function(d) {
-      return d.target.yPos + square/2;
+      return d.target.y + square/2;
     });
 }
 
@@ -193,10 +193,10 @@ function addNode() {
   // 1. create new node with rect and text
   // 2. move to bottom position
   // 3. get nodeSquare#index rect x and y attributes; NOT TEXT
-  // 4. create new link for arrow from new rect to nodeSquare#index rect position
+  // 4. create new line for arrow from new rect to nodeSquare#index rect position
   // 5. get arrow#(index-1)#index arrow and point it to new rect position
   // 6. insert new node into var nodes before node#index
-  // 7. insert new link into var arrows before arrow#index#(index+1) // error check for penultimate or last node
+  // 7. insert new line into var arrows before arrow#index#(index+1) // error check for penultimate or last node
   // 8. insert new value into var values
   // 9. convertData, updateData, updateVisuals
 
@@ -204,47 +204,27 @@ function addNode() {
   var value = document.getElementById("value").value;
   // 1.
   createNewNode(index, value);
+
   // 2.
+  animateStep(currentStep, function() {
+    moveNewNodeAlong()
+  });
+  currentStep++;
 
-  /*var promise = moveNewNodeAlong();
+  // 3. 4.
+  animateStep(currentStep, function() {
+    createNewArrow(index);
+    pointNewArrow(index)
+  });
+  currentStep++;
 
-  promise.then(function(result) {
-    // 3. 4.
-    if (index < elements.length) {
-      createNewArrow(index);
-    }
-    // 5.
-    pointToNewNode(index);
-  });*/
-
-  /*
-  moveNewNodeAlong()
-    .then(function(source) {
-      if (index < elements.length) {
-        setTimeout(function() {
-          createNewArrow(source, index);
-        }, 1000);
-      }
-    })
-    .then(function() {
-      setTimeout(function() {
-        pointToNewNode(index)
-      }, 2000);
-    });*/
-
+  // 5.
+  if (index > 0 && index < elements.length) {
     animateStep(currentStep, function() {
-      moveNewNodeAlong()
+      pointPrevArrow(index);
     });
     currentStep++;
-    if (index < elements.length) {
-      animateStep(currentStep, function() {
-        createNewArrow(index);
-      });
-      currentStep++;
-    }
-    animateStep(currentStep, function() {
-      pointToNewNode(index);
-    });
+  }
 
 }
 
@@ -266,8 +246,8 @@ function createNewNode(index, val) {
   var newElem = {
     key: index,
     value: val,
-    xPos: frame(values.length+1) + index * (square + edgeLength),
-    yPos: topY
+    x: frame(values.length+1) + index * (square + edgeLength),
+    y: topY
   }
 
   var newNode = svg.append("g")
@@ -305,20 +285,15 @@ function createNewNode(index, val) {
 
 function moveNewNodeAlong() {
   // animate movement of new node to corresponding position on bottom level
-  // var promise = new Promise(function(resolve, reject) {
-    svg.select("#newNodeSquare")
-    .transition()
-    .duration(animationDuration)
-    .attr("x", function(d) {
-      return d.xPos;
-    })
-    .attr("y", function(d) {
-      return bottomY;
-    })
-    // .each("end", function(d) {
-      // return resolve();
-    //  });
-  // });
+  svg.select("#newNodeSquare")
+     .transition()
+     .duration(animationDuration)
+     .attr("x", function(d) {
+       return d.x;
+     })
+     .attr("y", function(d) {
+       return bottomY;
+     });
 
   svg.select("#newNodeText")
      .transition()
@@ -327,94 +302,100 @@ function moveNewNodeAlong() {
        return d.value;
      })
      .attr("x", function(d) {
-       return d.xPos + square/2;
+       return d.x + square/2;
      })
      .attr("y", function(d) {
          return bottomY + square/2 + 7
      });
-
-  //  return promise;
 }
 
 function createNewArrow(index) {
-  // animate new node's arrow to point to next node
-  // var promise = new Promise(function(resolve, reject) {
-    if (index < elements.length) {
-      var newNodeRect = svg.select("#newNodeSquare");
-      var nextNodeRect = svg.select("#nodeSquare" + index);
+  // animate new node's arrow to point to next node.
+  var newNodeRect = svg.select("#newNodeSquare");
 
-      var source = {
-        xPos: +newNodeRect.attr("x"),
-        yPos: +newNodeRect.attr("y")
-      }
+  if (index < elements.length) {
+    // if new node inserted not at end of list,
+    // new arrow needed from new node to next node
+    var nextNodeRect = svg.select("#nodeSquare" + index);
 
-      var target = {
-        xPos: +nextNodeRect.attr("x"),
-        yPos: +nextNodeRect.attr("y")
-      }
-
-      var newEdge = {
-        source: source,
-        target: target
-      }
-
-      var newArrow = svg.select("#newSVGElements")
-      .selectAll("line")
-      .data([newEdge])
-      .enter()
-      .append("line")
-      .attr("id", "newArrow")
-      .style("marker-end", "url(#end-arrow)")
-      .style("stroke", "black")
-      .style("stroke-width", "5px")
-      .style("fill", "none")
-      .attr("x1", function(d) {
-        return d.source.xPos + square;
-      })
-      .attr("y1", function(d) {
-        return d.source.yPos + square/2;
-      })
-      .attr("x2", function(d) {
-        return d.source.xPos + square;
-      })
-      .attr("y2", function(d) {
-        return d.source.yPos + square/2;
-      });
-
-      newArrow.transition()
-      .duration(animationDuration)
-      .attr("x2", function(d) {
-        return d.target.xPos + square/2;
-      })
-      .attr("y2", function(d) {
-        return d.target.yPos + square;
-      });
-      // .each("end", resolve());
-    } else {
-      // resolve();
+    var source = {
+      x: +newNodeRect.attr("x"),
+      y: +newNodeRect.attr("y")
     }
-  // });
 
-  // return promise;
+    var target = {
+      x: +nextNodeRect.attr("x"),
+      y: +nextNodeRect.attr("y")
+    }
+  } else {
+    // if new node inserted at end of list,
+    // new arrow needed from prev node to new node
+    var prevNodeRect = svg.select("#nodeSquare" + (index-1));
+
+    var source = {
+      x: +prevNodeRect.attr("x"),
+      y: +prevNodeRect.attr("y")
+    }
+
+    var target = {
+      x: +newNodeRect.attr("x"),
+      y: +newNodeRect.attr("y")
+    }
+  }
+
+
+  var newEdge = {
+    source: source,
+    target: target
+  }
+
+  svg.select("#newSVGElements")
+     .selectAll("line")
+     .data([newEdge])
+     .enter()
+     .append("line")
+     .attr("id", "newArrow")
+     .style("marker-end", "url(#end-arrow)")
+     .style("stroke", "black")
+     .style("stroke-width", "5px")
+     .style("fill", "none")
+     .attr("x1", function(d) {
+       return d.source.x + square;
+     })
+     .attr("y1", function(d) {
+       return d.source.y + square/2;
+     })
+     .attr("x2", function(d) {
+       return d.source.x + square;
+     })
+     .attr("y2", function(d) {
+       return d.source.y + square/2;
+     });
 }
 
-function pointToNewNode(index) {
-  // var promise = new Promise(function(resolve, reject) {
-    if (index > 0 && index < elements.length) {
-      var prevArrow = svg.select("#arrow"+(index-1)+index);
-      var newNodeRect = svg.select("#newNodeSquare");
+function pointNewArrow(index) {
+  svg.select("#newArrow")
+     .transition()
+     .duration(animationDuration)
+     .attr("x2", function(d) {
+       return d.target.x + square/2;
+     })
+     .attr("y2", function(d) {
+       return d.target.y + (index == elements.length ? 0 : square);
+     });
+}
 
-      prevArrow.transition()
-      .duration(animationDuration)
-      .attr("x2", +newNodeRect.attr("x") + square/2)
-      .attr("y2", newNodeRect.attr("y"));
-      // .each("end", resolve());
-    } else {
-      // resolve();
-    }
-  // });
+function pointPrevArrow(index) {
+  // points prev node's arrow to new node
+  // function assumes prev arrow already exists i.e. 0 < index < elements.length
+  // (does not include newly created prev arrow i.e when index == elements.length)
+  var prevArrow = svg.select("#arrow"+(index-1)+index);
+  var newNodeRect = svg.select("#newNodeSquare");
 
-  // return promise;
+  prevArrow.transition()
+           .duration(animationDuration)
+           .attr("x2", +newNodeRect.attr("x") + square/2)
+           .attr("y2", newNodeRect.attr("y"));
 }
 
 function updateHTML() {
@@ -454,16 +435,16 @@ function enterElem() {
         .style("stroke-width", "5px")
         .style("fill", "none")
         .attr("x1", function(d) {
-          return d.source.xPos + square;
+          return d.source.x + square;
         })
         .attr("y1", function(d) {
-          return d.source.yPos + square/2;
+          return d.source.y + square/2;
         })
         .attr("x2", function(d) {
-          return d.source.xPos + square;
+          return d.source.x + square;
         })
         .attr("y2", function(d) {
-          return d.source.yPos + square/2;
+          return d.source.y + square/2;
         });
 }
 
@@ -471,10 +452,10 @@ function updateVisuals() {
   squares.transition()
          .duration(animationDuration)
          .attr("x", function(d) {
-           return d.xPos;
+           return d.x;
          })
          .attr("y", function(d) {
-           return d.yPos;
+           return d.y;
          });
 
   text.transition()
@@ -483,25 +464,25 @@ function updateVisuals() {
         return d.value;
       })
       .attr("x", function(d) {
-        return d.xPos + square/2;
+        return d.x + square/2;
       })
       .attr("y", function(d) {
-        return d.yPos + square/ 2 + 7 ;
+        return d.y + square/ 2 + 7 ;
       });
 
   arrows.transition()
         .duration(animationDuration)
         .attr("x1", function(d) {
-          return d.source.xPos + square;
+          return d.source.x + square;
         })
         .attr("y1", function(d) {
-          return d.source.yPos + square/2;
+          return d.source.y + square/2;
         })
         .attr("x2", function(d) {
-          return d.target.xPos;
+          return d.target.x;
         })
         .attr("y2", function(d) {
-          return d.target.yPos + square/2;
+          return d.target.y + square/2;
         });
 }
 */
