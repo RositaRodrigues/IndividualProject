@@ -73,7 +73,8 @@ function restart() {
   nodeSquares = nodes.selectAll("rect");
   nodeTexts = nodes.selectAll("text");
 
-  arrows = svg.selectAll("line");
+  arrows = svg.selectAll("line")
+              .data(edges);
 
   svg.append("defs").append("svg:marker")
       .attr("id", "end-arrow")
@@ -122,8 +123,7 @@ function restart() {
            return d.y + square/ 2 + 7 ;
          });
 
-  arrows.data(edges)
-    .enter()
+  arrows.enter()
     .append("line")
     .attr("id", function(d, i) {
       return "arrow" + i + (i+1);
@@ -186,17 +186,31 @@ function addNode() {
   // 2. move to bottom position
   // 3. get nodeSquare#index rect x and y attributes; NOT TEXT
   // 4. create new line for arrow from new rect to nodeSquare#index rect position
-  // 5. get arrow#(index-1)#index arrow and point it to new rect position
-  // 6. insert new node into var nodes before node#index
-  // 7. insert new line into var arrows before arrow#index#(index+1) // error check for penultimate or last node
-  // 8. insert new value into var values
-  // 9. convertData, updateData, updateVisuals
+  // 5 get arrow#(index-1)#index arrow and point it to new rect position
+  // 6a. insert new node into var nodes before node#index
+  // 7a. insert new line into var arrows before arrow#index#(index+1) // error check for penultimate or last node
+  // 8a. insert new value into var values
+  // 9a. convertData, updateData, updateVisuals
+
+  // 6b. insert new value into values at index #index
+  // 7b. convertData - converts into x,y coords of list in end result
+  // 8b. updateData
+  // 9b. change attr(y) of node at index #index to bottomY
+  // 10b. updateVisuals
+
+  // 6c. update attr(id)'s of new elements
+  // 7c. append new node into var nodes at end
+  // 8c. append new line into var arrows at end
+  // 9c. insert new value into var values at index #index
+  // 10c. convert data
+  // 11c. updateData and attributes but set attr(y) of #index node to bottomY
+  // 12c. updateVisuals
 
   var index = document.getElementById("index").value;
   var value = document.getElementById("value").value;
+
   // 1.
   createNewNode(index, value);
-
   // 2.
   animateStep(currentStep, function() {
     moveNewNodeAlong()
@@ -227,53 +241,53 @@ function animateStep(step, func) {
 function updateData() {
   console.log(elements);
   nodes = nodes.data(elements);
-  // squares = squares.data(elements);
-  // text = text.data(elements);
   arrows = arrows.data(edges);
 }
 
-function createNewNode(index, val) {
-  // create new node with rect and text elements.
+function createNewNode(index, value) {
+  // create new node with rect and text elements and append to existing list
   // position at bottom left corner
+
+  var newElements = elements.slice();
   var newElem = {
     key: index,
-    value: val,
+    value: value,
     x: frame(values.length+1) + index * (square + edgeLength),
     y: topY
   }
+  newElements.push(newElem);
 
-  var newNode = svg.append("g")
-                   .attr("id", "newSVGElements")
-                   .selectAll("g")
-                   .data([newElem])
-                   .enter()
-                   .append("g")
-                   .attr("id", "newNode");
+  var lastIndex = elements.length;
 
+  nodes = nodes.data(newElements);
 
-  newNode.append("rect")
-         .attr("id", "newNodeSquare")
-         .attr("x", 0)
-         .attr("y", bottomY)
-         .attr("width", square)
-         .attr("height", square)
-         .attr("fill", function(d) {
-           return "rgb(0, 0, " + (d.value * 10) + ")";
-         });
+  var newNode = nodes.enter()
+                     .append("g")
+                     .attr("id", "node"+lastIndex);
 
-  newNode.append("text")
-         .text(function(d) {
-           return d.value;
-         })
-         .attr("id", "newNodeText")
-         .attr("x", square/2)
-         .attr("y", bottomY + square/ 2 + 7);
+   newNode.append("rect")
+          .attr("id", "nodeSquare"+lastIndex)
+          .attr("x", 0)
+          .attr("y", bottomY)
+          .attr("width", square)
+          .attr("height", square)
+          .attr("fill", function(d) {
+            return "rgb(0, 0, " + (d.value * 10) + ")";
+          });
 
+   newNode.append("text")
+          .text(function(d) {
+            return d.value;
+          })
+          .attr("id", "nodeText"+lastIndex)
+          .attr("x", square/2)
+          .attr("y", bottomY + square/ 2 + 7);
 }
 
 function moveNewNodeAlong() {
   // animate movement of new node to corresponding position on bottom level
-  svg.select("#newNodeSquare")
+  var lastIndex = elements.length;
+  svg.select("#nodeSquare"+lastIndex)
      .transition()
      .duration(animationDuration)
      .attr("x", function(d) {
@@ -283,7 +297,7 @@ function moveNewNodeAlong() {
        return bottomY;
      });
 
-  svg.select("#newNodeText")
+  svg.select("#nodeText"+lastIndex)
      .transition()
      .duration(animationDuration)
      .text(function(d) {
@@ -299,10 +313,10 @@ function moveNewNodeAlong() {
 
 function createNewArrow(index) {
   // animate new node's arrow to point to next node.
-  var newNodeRect = svg.select("#newNodeSquare");
-
+  var lastIndex = elements.length;
+  var newNodeRect = svg.select("#nodeSquare" + lastIndex);
   if (index < elements.length) {
-    // if new node inserted not at end of list,
+    // if new node not inserted at end of list,
     // new arrow needed from new node to next node
     var nextNodeRect = svg.select("#nodeSquare" + index);
 
@@ -336,29 +350,30 @@ function createNewArrow(index) {
     source: source,
     target: target
   }
+  var newEdges = edges.slice();
+  newEdges.push(newEdge);
+  arrows = arrows.data(newEdges);
 
-  svg.select("#newSVGElements")
-     .selectAll("line")
-     .data([newEdge])
-     .enter()
-     .append("line")
-     .attr("id", "newArrow")
-     .attr("x1", function(d) {
-       return d.source.x + square;
-     })
-     .attr("y1", function(d) {
-       return d.source.y + square/2;
-     })
-     .attr("x2", function(d) {
-       return d.source.x + square;
-     })
-     .attr("y2", function(d) {
-       return d.source.y + square/2;
-     });
+  var newArrow = arrows.enter()
+        .append("line")
+        .attr("id", "arrow"+(lastIndex-1)+lastIndex)
+        .attr("x1", function(d) {
+          return d.source.x + square;
+        })
+        .attr("y1", function(d) {
+          return d.source.y + square/2;
+        })
+        .attr("x2", function(d) {
+          return d.source.x + square;
+        })
+        .attr("y2", function(d) {
+          return d.source.y + square/2;
+        });
 }
 
 function pointNewArrow(index) {
-  svg.select("#newArrow")
+  var lastIndex = elements.length;
+  svg.select("#arrow"+(lastIndex-1)+lastIndex)
      .transition()
      .duration(animationDuration)
      .attr("x2", function(d) {
@@ -374,7 +389,7 @@ function pointPrevArrow(index) {
   // function assumes prev arrow already exists i.e. 0 < index < elements.length
   // (does not include newly created prev arrow i.e when index == elements.length)
   var prevArrow = svg.select("#arrow"+(index-1)+index);
-  var newNodeRect = svg.select("#newNodeSquare");
+  var newNodeRect = svg.select("#nodeSquare"+elements.length);
 
   prevArrow.transition()
            .duration(animationDuration)
