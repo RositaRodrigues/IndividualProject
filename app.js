@@ -132,7 +132,7 @@ function restart() {
     .style("stroke-width", "5px")
     .style("fill", "none")
     .attr("id", function(d, i) {
-      return "edge" + i + (i+1);
+      return "arrow" + i + (i+1);
     })
     .attr("x1", function(d) {
       return d.source.xPos + square;
@@ -202,8 +202,12 @@ function addNode() {
   var value = document.getElementById("value").value;
   // 1.
   createNewNode(index, value);
-  // 2
-
+  // 2.
+  var promise = moveNewNodeAlong();
+  // 3. 4.
+  promise.then(function(result) {
+    createNewArrow(index);
+  });
 }
 
 function updateData() {
@@ -215,8 +219,6 @@ function updateData() {
 }
 
 function createNewNode(index, val) {
-  console.log("creating");
-
   var newElem = {
     key: index,
     value: val,
@@ -225,12 +227,12 @@ function createNewNode(index, val) {
   }
 
   var newNode = svg.append("g")
-                   .attr("id", "newNode")
+                   .attr("id", "newSVGElements")
                    .selectAll("g")
                    .data([newElem])
                    .enter()
                    .append("g")
-                   .attr("id", "newNodeG");
+                   .attr("id", "newNode");
 
 
   newNode.append("rect")
@@ -256,17 +258,22 @@ function createNewNode(index, val) {
          .attr("text-anchor", "middle");
 
 }
-/*
+
 function moveNewNodeAlong() {
-  svg.select("#newNodeSquare")
-     .transition()
-     .duration(1000)
-     .attr("x", function(d) {
-       return d.xPos;
-     })
-     .attr("y", function(d) {
-         return bottomY;
+  var promise = new Promise(function(resolve, reject) {
+    svg.select("#newNodeSquare")
+    .transition()
+    .duration(1000)
+    .attr("x", function(d) {
+      return d.xPos;
+    })
+    .attr("y", function(d) {
+      return bottomY;
+    })
+    .each("end", function(d) {
+      return resolve({x: d.xPos, y: d.yPos});
      });
+  });
 
   svg.select("#newNodeText")
      .transition()
@@ -280,8 +287,63 @@ function moveNewNodeAlong() {
      .attr("y", function(d) {
          return bottomY + square/2 + 7
      });
+
+   return promise;
 }
-*/
+
+function createNewArrow(index) {
+  var newNodeRect = svg.select("#newNodeSquare");
+  var nextNodeRect = svg.select("#nodeSquare" + index);
+
+  var source = {
+    xPos: +newNodeRect.attr("x"),
+    yPos: +newNodeRect.attr("y")
+  }
+
+  var target = {
+    xPos: +nextNodeRect.attr("x"),
+    yPos: +nextNodeRect.attr("y")
+  }
+
+  var newEdge = {
+    source: source,
+    target: target
+  }
+
+  var newArrow = svg.select("#newSVGElements")
+                    .selectAll("line")
+                    .data([newEdge])
+                    .enter()
+                    .append("line")
+                    .attr("id", "newArrow")
+                    .style("marker-end", "url(#end-arrow)")
+                    .style("stroke", "black")
+                    .style("stroke-width", "5px")
+                    .style("fill", "none")
+                    .attr("x1", function(d) {
+                      return d.source.xPos + square;
+                    })
+                    .attr("y1", function(d) {
+                      return d.source.yPos + square/2;
+                    })
+                    .attr("x2", function(d) {
+                      return d.source.xPos + square;
+                    })
+                    .attr("y2", function(d) {
+                      return d.source.yPos + square/2;
+                    });
+
+    newArrow.transition()
+            .duration(1000)
+            .attr("x2", function(d) {
+              return d.target.xPos + square/2;
+            })
+            .attr("y2", function(d) {
+              return d.target.yPos + square;
+            });
+
+}
+
 function updateHTML() {
   document.getElementById("index").max = values.length;
   document.getElementById("index").value = 0;
