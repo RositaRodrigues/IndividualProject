@@ -1,0 +1,13 @@
+line {
+  marker-end: url(#end-arrow);
+  stroke: black;
+  stroke-width: 5px;
+  fill: none;
+}
+
+text {
+  font-family: sans-serif;
+  font-size: 20px;
+  fill: white;
+  text-anchor: middle;
+}

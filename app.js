@@ -75,16 +75,16 @@ function restart() {
 
   arrows = svg.selectAll("line");
 
-  svg.append('svg:defs').append('svg:marker')
-      .attr('id', 'end-arrow')
-      .attr('viewBox', '0 -5 10 10')
-      .attr('refX', 6)
-      .attr('markerWidth', 3)
-      .attr('markerHeight', 3)
-      .attr('orient', 'auto')
-    .append('svg:path')
-      .attr('d', 'M0,-5L10,0L0,5')
-      .attr('fill', '#000');
+  svg.append("defs").append("svg:marker")
+      .attr("id", "end-arrow")
+      .attr("viewBox", "0 -5 10 10")
+      .attr("refX", 6)
+      .attr("markerWidth", 3)
+      .attr("markerHeight", 3)
+      .attr("orient", "auto")
+      .append("svg:path")
+        .attr("d", "M0,-5L10,0L0,5")
+        .attr("fill", "#000");
 
   var newNode = nodes.enter()
                      .append("g")
@@ -120,19 +120,11 @@ function restart() {
          })
          .attr("y", function(d) {
            return d.y + square/ 2 + 7 ;
-         })
-         .attr("font-family", "sans-serif")
-         .attr("font-size", "20px")
-         .attr("fill", "white")
-         .attr("text-anchor", "middle");
+         });
 
   arrows.data(edges)
     .enter()
     .append("line")
-    .style("marker-end", "url(#end-arrow)")
-    .style("stroke", "black")
-    .style("stroke-width", "5px")
-    .style("fill", "none")
     .attr("id", function(d, i) {
       return "arrow" + i + (i+1);
     })
@@ -275,11 +267,7 @@ function createNewNode(index, val) {
          })
          .attr("id", "newNodeText")
          .attr("x", square/2)
-         .attr("y", bottomY + square/ 2 + 7)
-         .attr("font-family", "sans-serif")
-         .attr("font-size", "20px")
-         .attr("fill", "white")
-         .attr("text-anchor", "middle");
+         .attr("y", bottomY + square/ 2 + 7);
 
 }
 
@@ -355,10 +343,6 @@ function createNewArrow(index) {
      .enter()
      .append("line")
      .attr("id", "newArrow")
-     .style("marker-end", "url(#end-arrow)")
-     .style("stroke", "black")
-     .style("stroke-width", "5px")
-     .style("fill", "none")
      .attr("x1", function(d) {
        return d.source.x + square;
      })
@@ -422,18 +406,10 @@ function enterElem() {
          return d.value;
        })
        .attr("x", square/2)
-       .attr("y", bottomY + square/ 2 + 7)
-       .attr("font-family", "sans-serif")
-       .attr("font-size", "20px")
-       .attr("fill", "white")
-       .attr("text-anchor", "middle");
+       .attr("y", bottomY + square/ 2 + 7);
 
   arrows.enter()
         .append("line")
-        .style("marker-end", "url(#end-arrow)")
-        .style("stroke", "black")
-        .style("stroke-width", "5px")
-        .style("fill", "none")
         .attr("x1", function(d) {
           return d.source.x + square;
         })
