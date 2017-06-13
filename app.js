@@ -13,10 +13,10 @@ var yTextOffset = square/2 + 7;
 var maxValue = 25;
 var animationDuration = 1000; // ms
 var values1 = [ 10, 15 ];
-var values2 = [ 5, 10, 16, 19, 11 ];
+var values2 = [ 25, 10, 16, 19, 11 ];
 var values3 = [ 5, 2, 25, 10, 18 ];
 var values4 = [ 5, 10, 16, 19, 11, 15, 20, 17 ];
-var values = values2.slice();
+var values = values1.slice();
 var elements = [];
 var edges = [];
 var indices;
@@ -152,41 +152,6 @@ function start() {
         });
 }
 
-/*
-function addNode() {
-  if (values.length >= elementLimit) {
-    console.log("max limit reached");
-    // if (duplicate) "no duplicates allowed" ?
-  } else {
-    var newNumber = document.getElementById("value").value;
-    var index = document.getElementById("index").value;
-    values.splice(index, 0, +newNumber);
-
-    // "Index: 0   1   2   3 ... n"
-    // (1) enter new element from bottomY
-    // (2) move new element to position in between #(index-1) and #index elements
-    // (3) attach new arrow from new element to #index element
-    // (4) move #(index-1) element's arrow to point to new element below
-    // (5) add #(n+1) label to "Index: " level
-    // (5) move all elements and arrows to correct positions
-
-
-    convertData();
-    // console.log(elements);
-    // console.log(edges);
-    updateData();
-    createNewNode(); // (1)
-    // moveNewNodeAlong(); // (2)
-
-    // after (5), delete ids of new element's square/text and arrows
-
-    // enterElem();
-    // updateVisuals();
-    // updateHTML();
-  }
-}
-*/
-
 function addNode() {
   // 1. create and append new node with rect and text
   // 2. move new node to bottom position
@@ -194,8 +159,7 @@ function addNode() {
   // 4. point prev node's arrow to new node if needed
   // 5. insert new value into var values at index #index
   // 6. convertData
-  // 7. updateData
-  // 8. reset new node's and arrow positions to bottom level
+  // 7. updateData and reposition elements as before final step
   // 9. updateVisuals
 
   var index = document.getElementById("index").value;
@@ -233,10 +197,10 @@ function addNode() {
     convertData();
 
     // 7.
-    updateDataAndAttrs(index);
+    updateDataAndReposition(index);
 
     // 8.
-    updateVisuals();
+    // updateVisuals();
   });
 
 }
@@ -355,7 +319,7 @@ function createNewArrow(index) {
   newEdges.push(newEdge);
   arrows = arrows.data(newEdges);
 
-  var newArrow = arrows.enter()
+  arrows.enter()
         .append("line")
         .attr("id", "arrow"+(lastIndex-1)+lastIndex)
         .attr("x1", function(d) {
@@ -398,7 +362,8 @@ function pointPrevArrow(index) {
            .attr("y2", newNodeRect.attr("y"));
 }
 
-function updateDataAndAttrs(index) {
+function updateDataAndReposition(index) {
+  // updateData and reposition elements as before final step
   nodes = nodes.data(elements);
   arrows = arrows.data(edges);
 
@@ -455,24 +420,52 @@ function updateDataAndAttrs(index) {
          }
        });
 
-  arrows.select("line")
-        .attr("id", function(d, i) {
-          return "edge" + i + (i+1);
-        })
-        .attr("x1", function(d) {
-          return d.source.x + square;
-        })
-        .attr("y1", function(d) {
-          return d.source.y + square/2;
-        })
-        .attr("x2", function(d) {
-          return d.target.x;
-        })
-        .attr("y2", function(d) {
-          return d.target.y + square/2;
-        });
-}
+      //  console.log(arrows);
 
+
+  arrows.attr("id", function(d, i) {
+          return "arrow" + i + (i+1);
+        })
+        .attr("x1", function(d, i) {
+          if (i < index) {
+            return calcXPosition(i, values.length-1) + square;
+          } else if (i == index) {
+            return calcXPosition(i, values.length) + square;
+          } else {
+            return calcXPosition(i-1, values.length-1) + square;
+          }
+        })
+        .attr("y1", function(d, i) {
+          if (i == index) {
+            return bottomY + square/2;
+          } else {
+            return d.source.y + square/2;
+          }
+        })
+        .attr("x2", function(d, i) {
+          console.log("updating");
+          if (i < index) {
+            return calcXPosition(i+1, values.length-1);
+          } else if (i == index) {
+            return calcXPosition(i, values.length-1) + square/2;
+          } else {
+            // console.log(i);
+            // console.log(calcXPosition(i, values.length-1));
+            return calcXPosition(i, values.length-1);
+          }
+        })
+        .attr("y2", function(d, i) {
+          if (i == index) {
+            return topY + square;
+          } else {
+            // console.log(d.target.y+square/2);
+            return d.target.y + square/2;
+          }
+        });
+        // arrow = svg.select("#arrow45").attr("x2", 2).attr("y2", 10);
+        // console.log(arrow.attr("x2"));
+}
+/*
 function swapNewNodeAndArrowPositions(index) {
   var lastIndex = elements.length-1;
   var newNode = svg.select("#nodeSquare" + index);
@@ -503,17 +496,17 @@ function swapNewNodeAndArrowPositions(index) {
      .attr("x", tempCoords.x + xTextOffset)
      .attr("y", tempCoords.y + yTextOffset);
 
-  if (index > 0) {
-    svg.select("#edge"+(index-1)+index)
-    .attr("y2", bottomY);
-  }
-
-  if (index < elements.length - 1) {
-    svg.select("#edge"+index+(index+1))
-    .attr("y1", bottomY);
-  }
+  // if (index > 0) {
+  //   svg.select("#edge"+(index-1)+index)
+  //   .attr("y2", bottomY);
+  // }
+  //
+  // if (index < elements.length - 1) {
+  //   svg.select("#edge"+index+(index+1))
+  //   .attr("y1", bottomY);
+  // }
 }
-
+*/
 function updateVisuals() {
   nodes.select("rect")
        .transition()
@@ -556,46 +549,11 @@ function updateVisuals() {
 
 function updateHTML() {
   document.getElementById("index").max = values.length;
-  document.getElementById("index").value = 1;
+  document.getElementById("index").value = 0;
   document.getElementById("value").max = maxValue;
   document.getElementById("value").value = Math.round(Math.random() * maxValue);
 }
-/*
-function enterElem() {
-  squares.enter()
-         .append("rect")
-         .attr("x", 0)
-         .attr("y", bottomY)
-         .attr("width", square)
-         .attr("height", square)
-         .attr("fill", function(d) {
-           return "rgb(0, 0, " + (d.value * 10) + ")";
-         });
 
-   text.enter()
-       .append("text")
-       .text(function(d) {
-         return d.value;
-       })
-       .attr("x", xTextOffset)
-       .attr("y", bottomY + yTextOffset);
-
-  arrows.enter()
-        .append("line")
-        .attr("x1", function(d) {
-          return d.source.x + square;
-        })
-        .attr("y1", function(d) {
-          return d.source.y + square/2;
-        })
-        .attr("x2", function(d) {
-          return d.source.x + square;
-        })
-        .attr("y2", function(d) {
-          return d.source.y + square/2;
-        });
-}
-*/
 function loadElements(version) {
   if (version == 1) {
     values = values1.slice();
