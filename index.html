@@ -9,11 +9,11 @@
     </head>
     <body onload="resetHTML()">
         <script type="text/javascript" src="app.js"></script>
-        <button>Delete Node</button>
+        <div id="errorMessage"></div>
         <div>
           Index: <input type="number" step="1" min="0" id="index" placeholder="Index" style="width: 50px">
           Value: <input type="number" step="1" min="0" id="value" placeholder="Value" style="width: 50px">
-          <button id="addNode" onclick="addNode()">Add Node</button>
+          <button id="addNodeButton" onclick="addNode()">Add Node</button>
         </div>
         <div>
           <button onclick="loadElements(1)">1</button>

@@ -4,7 +4,7 @@ var barPadding = 1;
 var defaultEdgeLength = 50;
 var edgeLength = defaultEdgeLength;
 var square = 50;
-var elementLimit = Math.floor((w - 2 * square) / (square + edgeLength)) + 1;
+var nodeLimit = Math.floor((w - 2 * square) / (square + edgeLength)) + 1;
 var topY = h / 3;
 var bottomY = 2*h/3;
 var xTextOffset = square/2;
@@ -161,50 +161,54 @@ function addNode() {
   // 6. convertData
   // 7. updateData and reposition elements as before final step
   // 8. updateVisuals
+  resetHTML();
+  if (values.length >= nodeLimit) {
+    document.getElementById("errorMessage").innerHTML = "Node Limit Reached";
+  } else {
+    var index = document.getElementById("index").value;
+    var value = document.getElementById("value").value;
 
-  var index = document.getElementById("index").value;
-  var value = document.getElementById("value").value;
-  document.getElementById("addNode").disabled = true;
+    document.getElementById("addNodeButton").disabled = true;
 
-  var currentStep = 0;
-  // 1.
-  createNewNode(index, value);
-  // 2.
-  animateStep(currentStep, function() {
-    moveNewNodeAlong()
-  });
-  currentStep++;
-
-  // 3.
-  animateStep(currentStep, function() {
-    createNewArrow(index);
-    pointNewArrow(index)
-  });
-  currentStep++;
-
-  // 4.
-  if (index > 0 && index < elements.length) {
+    var currentStep = 0;
+    // 1.
+    createNewNode(index, value);
+    // 2.
     animateStep(currentStep, function() {
-      pointPrevArrow(index);
+      moveNewNodeAlong()
     });
     currentStep++;
+
+    // 3.
+    animateStep(currentStep, function() {
+      createNewArrow(index);
+      pointNewArrow(index)
+    });
+    currentStep++;
+
+    // 4.
+    if (index > 0 && index < elements.length) {
+      animateStep(currentStep, function() {
+        pointPrevArrow(index);
+      });
+      currentStep++;
+    }
+
+    animateStep(currentStep, function() {
+      // 5.
+      values.splice(index, 0, value);
+
+      // 6.
+      convertData();
+
+      // 7.
+      updateDataAndReposition(index);
+
+      // 8.
+      updateVisuals();
+      resetHTML();
+    });
   }
-
-  animateStep(currentStep, function() {
-    // 5.
-    values.splice(index, 0, value);
-
-    // 6.
-    convertData();
-
-    // 7.
-    updateDataAndReposition(index);
-
-    // 8.
-    updateVisuals();
-    resetHTML();
-  });
-
 }
 
 function animateStep(step, func) {
@@ -501,7 +505,8 @@ function resetHTML() {
   document.getElementById("index").value = 0;
   document.getElementById("value").max = maxValue;
   document.getElementById("value").value = Math.round(Math.random() * maxValue);
-  document.getElementById("addNode").disabled = false;
+  document.getElementById("addNodeButton").disabled = false;
+  document.getElementById("errorMessage").innerHTML = "";
 }
 
 function loadElements(version) {
