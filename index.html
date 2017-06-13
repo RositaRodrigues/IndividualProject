@@ -7,13 +7,13 @@
         <script type="text/javascript" src="d3/d3.js"></script>
         <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
     </head>
-    <body onload="updateHTML()">
+    <body onload="resetHTML()">
         <script type="text/javascript" src="app.js"></script>
         <button>Delete Node</button>
         <div>
           Index: <input type="number" step="1" min="0" id="index" placeholder="Index" style="width: 50px">
           Value: <input type="number" step="1" min="0" id="value" placeholder="Value" style="width: 50px">
-          <button onclick="addNode()">Add Node</button>
+          <button id="addNode" onclick="addNode()">Add Node</button>
         </div>
         <div>
           <button onclick="loadElements(1)">1</button>

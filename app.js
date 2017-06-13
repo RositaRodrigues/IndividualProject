@@ -1,4 +1,3 @@
-//Width and height
 var w = 800;
 var h = 300;
 var barPadding = 1;
@@ -165,6 +164,7 @@ function addNode() {
 
   var index = document.getElementById("index").value;
   var value = document.getElementById("value").value;
+  document.getElementById("addNode").disabled = true;
 
   var currentStep = 0;
   // 1.
@@ -202,6 +202,7 @@ function addNode() {
 
     // 8.
     updateVisuals();
+    resetHTML();
   });
 
 }
@@ -432,6 +433,9 @@ function updateDataAndReposition(index) {
           }
         })
         .attr("x2", function(d, i) {
+          if (i == index-1) { // prevArrow
+            return calcXPosition(i+1, values.length) + square/2;
+          } else
           if (i < index) {
             return calcXPosition(i+1, values.length-1);
           } else if (i == index) {
@@ -441,6 +445,9 @@ function updateDataAndReposition(index) {
           }
         })
         .attr("y2", function(d, i) {
+          if (i == index-1) { // prevArrow
+            return bottomY;
+          } else
           if (i == index) {
             return topY + square;
           } else {
@@ -489,11 +496,12 @@ function updateVisuals() {
         });
 }
 
-function updateHTML() {
+function resetHTML() {
   document.getElementById("index").max = values.length;
   document.getElementById("index").value = 0;
   document.getElementById("value").max = maxValue;
   document.getElementById("value").value = Math.round(Math.random() * maxValue);
+  document.getElementById("addNode").disabled = false;
 }
 
 function loadElements(version) {
@@ -507,7 +515,7 @@ function loadElements(version) {
     values = values4.slice();
   }
   convertData();
-  updateHTML();
+  resetHTML();
   start();
 }
 
