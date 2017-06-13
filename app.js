@@ -12,19 +12,20 @@ var xTextOffset = square/2;
 var yTextOffset = square/2 + 7;
 var maxValue = 25;
 var animationDuration = 1000; // ms
+var pauseDuration = 50; // ms
 var values1 = [ 10, 15 ];
 var values2 = [ 25, 10, 16, 19, 11 ];
 var values3 = [ 5, 2, 25, 10, 18 ];
 var values4 = [ 5, 10, 16, 19, 11, 15, 20, 17 ];
-var values = values1.slice();
+var values = values2.slice();
 var elements = [];
 var edges = [];
 var indices;
 // var indexSquares;
 // var indexTexts;
 var nodes;
-var nodeSquares;
-var nodeTexts;
+// var nodeSquares;
+// var nodeTexts;
 var arrows;
 
 var svg = d3.select("body")
@@ -80,8 +81,8 @@ function start() {
              .attr("id", "nodes")
              .selectAll("g")
              .data(elements);
-  nodeSquares = nodes.selectAll("rect");
-  nodeTexts = nodes.selectAll("text");
+  // nodeSquares = nodes.selectAll("rect");
+  // nodeTexts = nodes.selectAll("text");
 
   arrows = svg.selectAll("line")
               .data(edges);
@@ -160,7 +161,7 @@ function addNode() {
   // 5. insert new value into var values at index #index
   // 6. convertData
   // 7. updateData and reposition elements as before final step
-  // 9. updateVisuals
+  // 8. updateVisuals
 
   var index = document.getElementById("index").value;
   var value = document.getElementById("value").value;
@@ -200,13 +201,13 @@ function addNode() {
     updateDataAndReposition(index);
 
     // 8.
-    // updateVisuals();
+    updateVisuals();
   });
 
 }
 
 function animateStep(step, func) {
-  setTimeout(func, animationDuration * step);
+  setTimeout(func, (animationDuration + pauseDuration) * step);
 }
 
 function createNewNode(index, value) {
@@ -257,22 +258,13 @@ function moveNewNodeAlong() {
      .duration(animationDuration)
      .attr("x", function(d) {
        return d.x;
-     })
-     .attr("y", function(d) {
-       return bottomY;
      });
 
   svg.select("#nodeText"+lastIndex)
      .transition()
      .duration(animationDuration)
-     .text(function(d) {
-       return d.value;
-     })
      .attr("x", function(d) {
        return d.x + xTextOffset;
-     })
-     .attr("y", function(d) {
-         return bottomY + yTextOffset;
      });
 }
 
@@ -420,9 +412,6 @@ function updateDataAndReposition(index) {
          }
        });
 
-      //  console.log(arrows);
-
-
   arrows.attr("id", function(d, i) {
           return "arrow" + i + (i+1);
         })
@@ -443,14 +432,11 @@ function updateDataAndReposition(index) {
           }
         })
         .attr("x2", function(d, i) {
-          console.log("updating");
           if (i < index) {
             return calcXPosition(i+1, values.length-1);
           } else if (i == index) {
             return calcXPosition(i, values.length-1) + square/2;
           } else {
-            // console.log(i);
-            // console.log(calcXPosition(i, values.length-1));
             return calcXPosition(i, values.length-1);
           }
         })
@@ -458,55 +444,11 @@ function updateDataAndReposition(index) {
           if (i == index) {
             return topY + square;
           } else {
-            // console.log(d.target.y+square/2);
             return d.target.y + square/2;
           }
         });
-        // arrow = svg.select("#arrow45").attr("x2", 2).attr("y2", 10);
-        // console.log(arrow.attr("x2"));
 }
-/*
-function swapNewNodeAndArrowPositions(index) {
-  var lastIndex = elements.length-1;
-  var newNode = svg.select("#nodeSquare" + index);
-  var penultimateNode = svg.select("#nodeSquare" + (lastIndex-1));
-  var lastNode = svg.select("#nodeSquare" + (lastIndex));
-  var tempCoords = {
-    x: +penultimateNode.attr("x"),
-    y: +penultimateNode.attr("y")
-  }
 
-  svg.select("#nodeSquare" + index)
-     .attr("x", function(d) {
-       return d.x;
-     })
-     .attr("y", bottomY);
-
-  svg.select("#nodeText" + index)
-     .attr("x", function(d) {
-       return d.x + xTextOffset;
-     })
-     .attr("y", bottomY + yTextOffset);
-
-  svg.select("#nodeSquare" + (lastIndex))
-     .attr("x", tempCoords.x)
-     .attr("y", tempCoords.y);
-
-  svg.select("#nodeText" + (lastIndex))
-     .attr("x", tempCoords.x + xTextOffset)
-     .attr("y", tempCoords.y + yTextOffset);
-
-  // if (index > 0) {
-  //   svg.select("#edge"+(index-1)+index)
-  //   .attr("y2", bottomY);
-  // }
-  //
-  // if (index < elements.length - 1) {
-  //   svg.select("#edge"+index+(index+1))
-  //   .attr("y1", bottomY);
-  // }
-}
-*/
 function updateVisuals() {
   nodes.select("rect")
        .transition()
