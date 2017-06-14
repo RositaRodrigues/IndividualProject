@@ -153,14 +153,6 @@ function start() {
 }
 
 function addNode() {
-  // 1. create and append new node with rect and text
-  // 2. move new node to bottom position
-  // 3. create new arrow (from new node to next node or from prev node to new node)
-  // 4. point prev node's arrow to new node if needed
-  // 5. insert new value into var values at index #index
-  // 6. convertData
-  // 7. updateData and reposition elements as before final step
-  // 8. updateVisuals
   if (values.length >= nodeLimit) {
     document.getElementById("errorMessage").innerHTML = "Node Limit Reached";
   } else {
@@ -179,15 +171,15 @@ function addNode() {
     }
 
     var currentStep = 0;
-    // 1.
+    // 1. create new node with rect and text
     createNewNode(newElem);
-    // 2.
+    // 2. move new node to bottom position
     animateStep(currentStep, function() {
       moveNewNodeAlong()
     });
     currentStep++;
 
-    // 3.
+    // 3. create new arrow (from new node to next node or from prev node to new node)
     animateStep(currentStep, function() {
       createNewArrow(index);
     });
@@ -195,6 +187,7 @@ function addNode() {
     if (index < values.length) {
       // next node exists
       animateStep(currentStep, function() {
+        // 4. point new node's arrow to next node
         pointFromNewNodeToNextNode();
       });
       currentStep++;
@@ -203,18 +196,21 @@ function addNode() {
     if (index > 0) {
       // prev node exists
       animateStep(currentStep, function() {
+        // 5. point prev node's arrow to new node
         pointFromPrevNodeToNewNode(index);
       });
       currentStep++;
     }
 
     animateStep(currentStep, function() {
+      // 6. insert value into values and convert into new data
       values.splice(index, 0, value);
       convertData();
-
+      // 7. update data, create space for new data, reposition elements as before final step
       updateDataAndReposition(index);
-
+      // 8. reposition as new list
       updateVisuals();
+      resetHTML();
     });
   }
 }
