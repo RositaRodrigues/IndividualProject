@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+    </head>
+    <body>
+
+      <div id="errorMessage"></div>
+      <div>
+        Index: <input type="number" step="1" min="0" id="index" placeholder="Index" style="width: 50px">
+        Value: <input type="number" step="1" min="0" id="value" placeholder="Value" style="width: 50px">
+        <button id="addNodeButton" ng-click="addNode()">Add Node</button>
+      </div>
+      <div>
+        <button onclick="loadElements(1)">1</button>
+        <button onclick="loadElements(2)">2</button>
+        <button onclick="loadElements(3)">3</button>
+        <button onclick="loadElements(4)">4</button>
+      </div>
+  </body>
+</html>
