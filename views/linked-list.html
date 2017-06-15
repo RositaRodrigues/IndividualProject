@@ -4,18 +4,18 @@
         <meta charset="utf-8">
     </head>
     <body>
-
-      <div id="errorMessage"></div>
+      <linked-list></linked-list>
+      <div>{{errorMessage}}</div>
       <div>
-        Index: <input type="number" step="1" min="0" id="index" placeholder="Index" style="width: 50px">
-        Value: <input type="number" step="1" min="0" id="value" placeholder="Value" style="width: 50px">
-        <button id="addNodeButton" ng-click="addNode()">Add Node</button>
+        Index: <input type="number" step="1" min="0" max="{{values.length}}" ng-model="add.index" style="width: 50px">
+        Value: <input type="number" step="1" min="0" max="{{maxValue}}" ng-model="add.value" style="width: 50px">
+        <button id="addNodeButton" ng-click="addNode()" ng-disabled="{{animationDisabled}}">Add Node</button>
       </div>
       <div>
-        <button onclick="loadElements(1)">1</button>
-        <button onclick="loadElements(2)">2</button>
-        <button onclick="loadElements(3)">3</button>
-        <button onclick="loadElements(4)">4</button>
+        <button ng-click="loadElements(0)">1</button>
+        <button ng-click="loadElements(1)">2</button>
+        <button ng-click="loadElements(2)">3</button>
+        <button ng-click="loadElements(3)">4</button>
       </div>
   </body>
 </html>
