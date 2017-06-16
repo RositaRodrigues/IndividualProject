@@ -14,8 +14,6 @@ angular.module("MyApp")
         var w = scope.dimensions.w;
         var h = scope.dimensions.h;
         var animationDuration = scope.animationDuration;
-        var elements = scope.elements;
-        var edges = scope.edges;
         var svg = d3.select(element[0])
                     .append("svg")
                     .attr("width", w)
@@ -33,27 +31,24 @@ angular.module("MyApp")
         var calcXPosition = scope.calcXPosition;
 
         scope.$watch("valuesVersion", function(newVersion, oldVersion) {
-          console.log("saw");
-          elements = scope.elements;
-          edges = scope.edges;
           constructInitialList();
         });
 
         function constructInitialList() {
           svg.selectAll("*").remove();
-          console.log(elements);
+
           indices = svg.append("svg:g")
           .attr("id", "indices")
           .selectAll("g")
-          .data(d3.range(elements.length));
+          .data(d3.range(scope.elements.length));
 
           nodes = svg.append("svg:g")
           .attr("id", "nodes")
           .selectAll("g")
-          .data(elements);
+          .data(scope.elements);
 
           arrows = svg.selectAll("line")
-          .data(edges);
+          .data(scope.edges);
 
           svg.append("defs").append("svg:marker")
           .attr("id", "end-arrow")
@@ -167,10 +162,10 @@ angular.module("MyApp")
 
         scope.createNewArrow = function(index) {
           var newNodeRect = svg.select("#newNodeSquare");
-          if (index == elements.length) {
+          if (index == scope.elements.length) {
             // node inserted at end of list.
             // new arrow created to point from tail to new node.
-            var sourceNodeRect = svg.select("#nodeSquare"+(elements.length-1));
+            var sourceNodeRect = svg.select("#nodeSquare"+(scope.elements.length-1));
             var targetNodeRect = newNodeRect;
           } else {
             // new node inserted at beginning or middle of list.
@@ -228,7 +223,7 @@ angular.module("MyApp")
 
         scope.pointFromPrevNodeToNewNode = function(index) {
           var newNodeRect = svg.select("#newNodeSquare");
-          if (index == elements.length) {
+          if (index == scope.elements.length) {
             var prevArrow = svg.select("#newArrow");
           } else {
             var prevArrow = svg.select("#arrow"+(index-1)+index);
