@@ -39,7 +39,6 @@ angular.module("MyApp")
     }
 
     function resetScope() {
-      console.log("resetting");
       $scope.add = {
         index: 2,
         value: Math.round(Math.random() * $scope.maxValue)
@@ -109,23 +108,19 @@ angular.module("MyApp")
 
         var currentStep = 0;
         // 1. create new node with rect and text
-        // console.log(1 + ", " + currentStep);
         $scope.createNewNode(newElem);
         // 2. move new node to bottom position
         animateStep(currentStep, function() {
-          // console.log(2 + ", " + currentStep);
           $scope.moveNewNodeAlong()
         });
         currentStep++;
 
         // 3. create new arrow (from new node to next node or from prev node to new node)
         animateStep(currentStep, function() {
-          // console.log(3 + ", " + currentStep);
           $scope.createNewArrow(index);
         });
 
         if (index < values.length) {
-          // console.log(4 + ", " + currentStep);
           // next node exists
           animateStep(currentStep, function() {
             // 4. point new node's arrow to next node
@@ -135,7 +130,6 @@ angular.module("MyApp")
         }
 
         if (index > 0) {
-          // console.log(5 + ", " + currentStep);
           // prev node exists
           animateStep(currentStep, function() {
             // 5. point prev node's arrow to new node
@@ -144,20 +138,18 @@ angular.module("MyApp")
           currentStep++;
         }
 
-        if (index != 6) {
-          animateStep(currentStep, function() {
-            // 6. insert value into values and convert into new data
-            values.splice(index, 0, value);
-            convertData();
-            // TODO: delete after elements/edges -> $scope.elements/edges change
-            $scope.elements = elements;
-            $scope.edges = edges;
-            // 7. update data, create space for new data, reposition elements as before final step
-            $scope.updateDataAndReposition(index);
-            // 8. reposition as new list
-            $scope.updateVisuals();
-            resetScope();
-          });
+        animateStep(currentStep, function() {
+          // 6. insert value into values and convert into new data
+          values.splice(index, 0, value);
+          convertData();
+          // TODO: delete after elements/edges -> $scope.elements/edges change
+          $scope.elements = elements;
+          $scope.edges = edges;
+          // 7. update data, create space for new data, reposition elements as before final step
+          $scope.updateDataAndReposition(index);
+          // 8. reposition as new list
+          $scope.updateVisuals();
+          resetScope();
 
         }
       }
