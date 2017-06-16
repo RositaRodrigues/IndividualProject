@@ -9,7 +9,7 @@
       <div>
         Index: <input type="number" step="1" min="0" max="{{values.length}}" ng-model="add.index" style="width: 50px">
         Value: <input type="number" step="1" min="0" max="{{maxValue}}" ng-model="add.value" style="width: 50px">
-        <button id="addNodeButton" ng-click="addNode()" ng-disabled="animationDisabled">Add Node {{animationDisabled}}</button>
+        <button ng-click="addNode()" ng-disabled="animationDisabled">Add Node</button>
       </div>
       <div>
         <button ng-click="loadElements(0)">1</button>

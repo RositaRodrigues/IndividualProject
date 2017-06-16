@@ -1,5 +1,5 @@
 angular.module("MyApp")
-  .controller("LinkedListCtrl", function($scope) {
+  .controller("LinkedListCtrl", function($scope, $timeout) {
     $scope.dimensions =  {
         w: 800,
         h: 300
@@ -150,13 +150,12 @@ angular.module("MyApp")
           // 8. reposition as new list
           $scope.updateVisuals();
           resetScope();
-
-        }
+        });
       }
     }
 
     function animateStep(step, func) {
-      setTimeout(func, (animationDuration + pauseDuration) * step);
+      $timeout(func, (animationDuration + pauseDuration) * step);
     }
 
     start();
