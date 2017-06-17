@@ -12,10 +12,9 @@ angular.module("MyApp")
     var square = 50;
     var edgeLength = 50;
     $scope.nodeLimit = Math.floor((w - 2 * square) / (square + edgeLength)) + 1;
-    var labelHeight = 10;
-    var indicesY = h/4 - square/2;
+    var indicesY = h/4;
     var topY = h/2 - square/2;
-    var labelY = topY - labelHeight;
+    var labelY = topY - 5;
     var bottomY = 3*h/4 - square/2;
     $scope.maxValue = 25;
     var animationDuration = $scope.animationDuration; // ms
@@ -29,6 +28,7 @@ angular.module("MyApp")
     var edges;
     var indexData;
     var labelData;
+    var xTextOffset = square/2;
 
     restart();
 
@@ -49,7 +49,7 @@ angular.module("MyApp")
 
     function resetScope() {
       $scope.add = {
-        index: 0,
+        index: 3,
         value: Math.round(Math.random() * $scope.maxValue)
       }
       $scope.remove = {
@@ -95,7 +95,7 @@ angular.module("MyApp")
         // indexData for indices
         var index = {
           value: i,
-          x: element.x,
+          x: element.x + xTextOffset,
           y: indicesY
         }
         indexData.push(index);
@@ -103,14 +103,14 @@ angular.module("MyApp")
 
       // labelData for labels
       var prevLabel = {
-          text: "prev",
-          x: calcXPosition(0),
-          y: labelY
+          text: "prev"
+          // x: 0,
+          // y: 0
         }
       var nextLabel = {
-        text: "next",
-        x: calcXPosition(1),
-        y: labelY
+        text: "next"
+        // x: 0,
+        // y: 0
       }
       labelData.push(prevLabel);
       labelData.push(nextLabel);
@@ -132,7 +132,11 @@ angular.module("MyApp")
     }
 
     function animateStep(step, func) {
-      $timeout(func, (animationDuration + pauseDuration) * step);
+      $timeout(func, (animationDuration+pauseDuration)*step);
+    }
+
+    function animateStepOverTimePeriod(step, totalSteps, period, func) {
+      $timeout(func, period*step/totalSteps);
     }
 
     $scope.addNode = function() {
@@ -142,16 +146,37 @@ angular.module("MyApp")
       $scope.animationDisabled = true;
 
       var currentStep = 0;
-      // 1. create new node with rect and text
-      // $scope.createNewNode(newElem);
-      var newElem = createNewNode(index, value);
-      // 2. move new node to bottom position
+      if (index > 0) {
+        // prev node exists
+        displayPrevLabel();
+        currentStep++;
+
+        for (var i = 0; i < index-1; i++) {
+          // move label along each node until prev node
+          animateStep(currentStep, function() {
+            movePrevLabelAlong();
+          });
+          currentStep++;
+        }
+      }
+
+      if (index < values.length) {
+        // next node exists
+        // display next label above next node
+        animateStep(currentStep, function() {
+          displayNextLabel(index);
+        });
+        currentStep++;
+      }
+
+      // create new node with rect and text
+      var newElem;
       animateStep(currentStep, function() {
-        moveNewNodeAlong(newElem);
+        newElem = createNewNode(index, value);
       });
       currentStep++;
 
-      // 3. create new arrow (from new node to next node or from prev node to new node)
+      // create new arrow (from new node to next node or from prev node to new node)
       var newEdge;
       animateStep(currentStep, function() {
         newEdge = createNewArrow(newElem);
@@ -160,7 +185,7 @@ angular.module("MyApp")
       if (index < values.length) {
         // next node exists
         animateStep(currentStep, function() {
-          // 4. point new node's arrow to next node
+          // point new node's arrow to next node
           pointFromNewNodeToNextNode(index, newEdge);
         });
         currentStep++;
@@ -169,37 +194,48 @@ angular.module("MyApp")
       if (index > 0) {
         // prev node exists
         animateStep(currentStep, function() {
-          // 5. point prev node's arrow to new node
+          // point prev node's arrow to new node
           pointFromPrevNodeToNewNode(index, newElem, newEdge);
         });
         currentStep++;
       }
 
       animateStep(currentStep, function() {
-        // 6. move new node into list at level above
         transformIntoNewList(index, value);
-        // 7. update data, create space for new data, reposition elements as before final step
-        // $scope.updateDataAndReposition(index);
-        // 8. reposition as new list
-        // $scope.updateVisuals();
         resetScope();
       });
+    }
+
+    function displayPrevLabel() {
+      var prevLabel = labelData[0];
+      prevLabel.x = calcXPosition(0) + xTextOffset;
+      prevLabel.y = labelY;
+      $scope.updateLabelPosition("prevLabel", labelData);
+    }
+
+    function movePrevLabelAlong() {
+      var prevLabel = labelData[0];
+      prevLabel.x += square + edgeLength;
+      $scope.updateLabelPosition("prevLabel", labelData);
+    }
+
+    function displayNextLabel(index) {
+      var nextLabel = labelData[1];
+      nextLabel.x = calcXPosition(index) + xTextOffset;
+      nextLabel.y = labelY;
+      $scope.updateLabelPosition("nextLabel", labelData);
     }
 
     function createNewNode(index, value) {
       var newElem = {
         key: index,
         value: value,
-        x: 0,
+        x: calcXPosition(index, values.length+1),
         y: bottomY
       }
       $scope.createNewNode(newElem);
-      return newElem;
-    }
-
-    function moveNewNodeAlong(newElem) {
-      newElem.x = calcXPosition(newElem.key, values.length+1);
       $scope.updateNodePosition("newNode", [newElem]);
+      return newElem;
     }
 
     function createNewArrow(newElem) {
@@ -266,7 +302,7 @@ angular.module("MyApp")
 
       convertData();
       // animate final step
-      $scope.transitionToNewData(elements, edges, indexData);
+      $scope.transitionToNewList(elements, edges, indexData, labelData);
     }
 
     function repositionToBeforeFinalStep(index) {

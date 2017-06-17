@@ -98,8 +98,8 @@ angular.module("MyApp")
                  .append("text")
                  .attr("id", function(d, i) { return "index"+i; })
                  .text(function(d) { return d.value; })
-                 .attr("x", function(d) { return d.x + xTextOffset; })
-                 .attr("y", function(d) { return d.y + yTextOffset; });
+                 .attr("x", function(d) { return d.x; })
+                 .attr("y", function(d) { return d.y; });
         }
 
         function constructLabels(labelData) {
@@ -108,6 +108,13 @@ angular.module("MyApp")
                       .attr("class", "labels")
                       .selectAll("text")
                       .data(labelData);
+
+          labels.enter()
+                .append("text")
+                .attr("id", function(d) { return d.text + "Label"; })
+                .text(function(d) { return d.text; })
+                .attr("x", function(d) { return d.x; })
+                .attr("y", function(d) { return d.y; });
         }
 
         scope.createNewNode = function(newElem) {
@@ -135,6 +142,19 @@ angular.module("MyApp")
                  .attr("fill", "white");
         }
 
+        scope.createNewArrow = function(newEdge) {
+          svg.select("#newSVGElements")
+             .selectAll("line")
+             .data(newEdge)
+             .enter()
+             .append("line")
+             .attr("id", "newArrow")
+             .attr("x1", function(d) { return d.source.x; })
+             .attr("y1", function(d) { return d.source.y; })
+             .attr("x2", function(d) { return d.target.x; })
+             .attr("y2", function(d) { return d.target.y; });
+        }
+
         scope.updateNodePosition = function(id, newData) {
           svg.select("#" + id)
              .data(newData);
@@ -152,19 +172,6 @@ angular.module("MyApp")
              .attr("y", function(d) { return d.y + yTextOffset; });
         }
 
-        scope.createNewArrow = function(newEdge) {
-          svg.select("#newSVGElements")
-             .selectAll("line")
-             .data(newEdge)
-             .enter()
-             .append("line")
-             .attr("id", "newArrow")
-             .attr("x1", function(d) { return d.source.x; })
-             .attr("y1", function(d) { return d.source.y; })
-             .attr("x2", function(d) { return d.target.x; })
-             .attr("y2", function(d) { return d.target.y; });
-        }
-
         scope.updateArrowPosition = function(id, newData) {
           svg.select("#" + id)
              .data(newData)
@@ -174,6 +181,18 @@ angular.module("MyApp")
              .attr("y1", function(d) { return d.source.y; })
              .attr("x2", function(d) { return d.target.x; })
              .attr("y2", function(d) { return d.target.y; });
+        }
+
+        scope.updateLabelPosition = function(id, newData) {
+          if (newData) {
+            labels = labels.data(newData);
+          }
+          svg.select("#"+id)
+             .transition()
+             .duration(animationDuration)
+             .text(function(d) { return d.text })
+             .attr("x", function(d) { return d.x; })
+             .attr("y", function(d) { return d.y; });
         }
 
         scope.appendNode = function() {
@@ -236,10 +255,11 @@ angular.module("MyApp")
           svg.select("#newSVGElements").data([]).exit().remove();
         }
 
-        scope.transitionToNewData = function(elements, edges, indexData) {
+        scope.transitionToNewList = function(elements, edges, indexData, labelData) {
           nodes = nodes.data(elements);
           arrows = arrows.data(edges);
           indices = indices.data(indexData);
+          labels = labels.data(labelData);
 
           nodes.select("rect")
                .transition()
@@ -264,8 +284,14 @@ angular.module("MyApp")
           indices.transition()
                  .duration(animationDuration)
                  .text(function(d) { return d.value; })
-                 .attr("x", function(d) { return d.x + xTextOffset; })
-                 .attr("y", function(d) { return d.y + yTextOffset; });
+                 .attr("x", function(d) { return d.x; })
+                 .attr("y", function(d) { return d.y; });
+
+          labels.transition()
+                .duration(animationDuration)
+                .text(function(d) { return d.text; })
+                .attr("x", function(d) { return d.x; })
+                .attr("y", function(d) { return d.y; });
         }
 
         $rootScope.$emit("Directive loaded", {});
