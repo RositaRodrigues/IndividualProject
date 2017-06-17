@@ -50,6 +50,9 @@ angular.module("MyApp")
         index: 0,
         value: Math.round(Math.random() * $scope.maxValue)
       }
+      $scope.remove = {
+        index: 0
+      }
       $scope.animationDisabled = false;
       $scope.errorMessage = "";
     }
@@ -99,6 +102,10 @@ angular.module("MyApp")
     function frame(newNumberOfNodes) {
       var numberOfNodes = newNumberOfNodes || values.length;
       return (w - numberOfNodes * square - (numberOfNodes - 1) * edgeLength) / 2;
+    }
+
+    function animateStep(step, func) {
+      $timeout(func, (animationDuration + pauseDuration) * step);
     }
 
     $scope.addNode = function() {
@@ -288,7 +295,7 @@ angular.module("MyApp")
       $scope.updateAllArrows(edges);
     }
 
-    function animateStep(step, func) {
-      $timeout(func, (animationDuration + pauseDuration) * step);
+    $scope.removeNode = function() {
+      
     }
   });

@@ -3,13 +3,6 @@ angular.module("MyApp")
     return {
       restrict: 'E',
       scope: false,
-      /*{ * = won't need after restructure
-          dimensions = {w: 800, h: 500},
-          animationDuration = 1000,
-          * values = values2.slice(),
-          elements,
-          edges
-        }*/
       link: function(scope, element, attrs) {
         var w = scope.dimensions.w;
         var h = scope.dimensions.h;
@@ -18,25 +11,56 @@ angular.module("MyApp")
                     .append("svg")
                     .attr("width", w)
                     .attr("height", h);
-        var indices;
         var nodes;
         var arrows;
+        var indices;
+        var labels;
         var square = 50;
         var xTextOffset = square/2;
         var yTextOffset = square/2 + 7;
 
-        scope.constructInitialList = function(elements, edges) {
+        scope.constructInitialList = function(elements, edges, indexData, labelData) {
           svg.selectAll("*").remove();
-          indices = svg.append("svg:g")
-                       .attr("id", "indices")
-                       .selectAll("g")
-                       .data(d3.range(elements.length));
+          if (elements) {
+            constructNodes(elements);
+          }
+          if (edges) {
+            constructArrows(edges);
+          }
+          if (indexData) {
+            constructIndices(indexData);
+          }
+          if (labelData) {
+            contructLabels(labelData);
+          }
+        }
 
+        function constructNodes(elements) {
           nodes = svg.append("svg:g")
                      .attr("id", "nodes")
                      .selectAll("g")
                      .data(elements);
 
+          var newNodes = nodes.enter()
+                              .append("g")
+                              .attr("id", function(d, i) { return "node"+i; });
+
+          newNodes.append("rect")
+                  .attr("id", function(d, i) { return "node"+i+"Square"; })
+                  .attr("x", function(d) { return d.x; })
+                  .attr("y", function(d) { return d.y; })
+                  .attr("width", square)
+                  .attr("height", square)
+                  .attr("fill", function(d) { return "rgb(0, 0, "+(d.value*10)+")"; });
+
+          newNodes.append("text")
+                  .text(function(d) { return d.value; })
+                  .attr("id", function(d, i) { return "node"+i+"Text"; })
+                  .attr("x", function(d) { return d.x + xTextOffset; })
+                  .attr("y", function(d) { return d.y + yTextOffset; });
+        }
+
+        function constructArrows(edges) {
           arrows = svg.selectAll("line")
                       .data(edges);
 
@@ -51,24 +75,6 @@ angular.module("MyApp")
                             .attr("d", "M0,-5L10,0L0,5")
                             .attr("fill", "#000");
 
-          var newNode = nodes.enter()
-                             .append("g")
-                             .attr("id", function(d, i) { return "node"+i; });
-
-          newNode.append("rect")
-                 .attr("id", function(d, i) { return "node"+i+"Square"; })
-                 .attr("x", function(d) { return d.x; })
-                 .attr("y", function(d) { return d.y; })
-                 .attr("width", square)
-                 .attr("height", square)
-                 .attr("fill", function(d) { return "rgb(0, 0, "+(d.value*10)+")"; });
-
-          newNode.append("text")
-                 .text(function(d) { return d.value; })
-                 .attr("id", function(d, i) { return "node"+i+"Text"; })
-                 .attr("x", function(d) { return d.x + xTextOffset; })
-                 .attr("y", function(d) { return d.y + yTextOffset; });
-
           arrows.enter()
                 .append("line")
                 .attr("id", function(d, i) { return "arrow"+i+(i+1); })
@@ -76,6 +82,20 @@ angular.module("MyApp")
                 .attr("y1", function(d) { return d.source.y; })
                 .attr("x2", function(d) { return d.target.x; })
                 .attr("y2", function(d) { return d.target.y; });
+        }
+
+        function constructIndices(indexData) {
+          indices = svg.append("svg:g")
+                       .attr("id", "indices")
+                       .selectAll("g")
+                       .data(indexData);
+        }
+
+        function constructLabels(labelData) {
+          labels = svg.append("svg:g")
+                      .attr("id", "labels")
+                      .selectAll("g")
+                      .data(labelData);
         }
 
         scope.createNewNode = function(newElem) {

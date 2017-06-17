@@ -12,6 +12,10 @@
         <button ng-click="addNode()" ng-disabled="animationDisabled">Add Node</button>
       </div>
       <div>
+        Index: <input type="number" step="1" min="0" max="{{values.length-1}}" ng-model="remove.index" style="width: 50px">
+        <button ng-click="removeNode()" ng-disabled="animationDisabled">Remove Node</button>
+      </div>
+      <div>
         <button ng-click="loadElements(0)">1</button>
         <button ng-click="loadElements(1)">2</button>
         <button ng-click="loadElements(2)">3</button>
