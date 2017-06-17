@@ -61,7 +61,9 @@ angular.module("MyApp")
         }
 
         function constructArrows(edges) {
-          arrows = svg.selectAll("line")
+          arrows = svg.append("svg:g")
+                      .attr("id", "arrows")
+                      .selectAll("line")
                       .data(edges);
 
           svg.append("defs").append("svg:marker")

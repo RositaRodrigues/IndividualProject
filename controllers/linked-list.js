@@ -11,9 +11,12 @@ angular.module("MyApp")
     var h = $scope.dimensions.h;
     var square = 50;
     var edgeLength = 50;
-    var nodeLimit = Math.floor((w - 2 * square) / (square + edgeLength)) + 1;
-    var topY = h/3;
-    var bottomY = 2*h/3;
+    nodeLimit = Math.floor((w - 2 * square) / (square + edgeLength)) + 1;
+    var labelHeight = 10;
+    var indicesY = h/4 - square/2;
+    var topY = h/2 - square/2;
+    var labelY = topY - labelHeight;
+    var bottomY = 3*h/4 - square/2;
     $scope.maxValue = 25;
     var animationDuration = $scope.animationDuration; // ms
     var pauseDuration = 50; // ms
@@ -22,8 +25,10 @@ angular.module("MyApp")
                           [ 5, 2, 25, 10, 18 ],
                           [ 5, 10, 16, 19, 11, 15, 20, 17 ]];
     var values = valuesExamples[1].slice();
-    var elements = [];
-    var edges = [];
+    var elements;
+    var edges;
+    var indexData;
+    var labelData;
 
     $scope.values = values; // not needed in scope
     $scope.calcXPosition = calcXPosition; // not needed in scope
@@ -60,24 +65,27 @@ angular.module("MyApp")
     function convertData() {
       elements = [];
       edges = [];
-      var index = 0;
-      values.forEach(function(val) {
+      indexData = [];
+      labelData = [];
+      values.forEach(function(val, i) {
+        // elements for nodes
         var element = {
-          key: index,
+          key: i,
           value: val,
-          x: calcXPosition(index),
+          x: calcXPosition(i),
           y: topY
         }
         elements.push(element);
 
-        if (index > 0) {
+        // edges for arrows
+        if (i > 0) {
           var source = {
-            x: elements[index-1].x + square,
-            y: elements[index-1].y + square/2
+            x: elements[i-1].x + square,
+            y: elements[i-1].y + square/2
           }
           var target = {
-            x: elements[index].x,
-            y: elements[index].y + square/2
+            x: elements[i].x,
+            y: elements[i].y + square/2
           }
           var edge = {
             source: source,
@@ -85,8 +93,28 @@ angular.module("MyApp")
           }
           edges.push(edge);
         }
-        index++;
+
+        // indexData for indices
+        var index = {
+          key: i,
+          x: element.x,
+          y: indicesY
+        }
+        indexData.push(index);
       });
+
+      var prevLabel = {
+          text: "prev",
+          x: calcXPosition(0),
+          y: labelY
+        }
+      var nextLabel = {
+        text: "next",
+        x: calcXPosition(1),
+        y: labelY
+      }
+      labelData.push(prevLabel);
+      labelData.push(nextLabel);
     }
 
     $scope.loadElements = function(version) {
@@ -296,6 +324,6 @@ angular.module("MyApp")
     }
 
     $scope.removeNode = function() {
-      
+
     }
   });
