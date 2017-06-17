@@ -204,12 +204,12 @@ angular.module("MyApp")
                              .attr("id", function(d, i) { return "node"+i; });
 
           newNode.append("rect")
-                 .attr("id", function(d, i) { return "nodeSquare"+i; })
+                 .attr("id", function(d, i) { return "node"+i+"Square"; })
                  .attr("width", square)
                  .attr("height", square);
 
           newNode.append("text")
-                 .attr("id", function(d, i) { return "nodeText"+i; });
+                 .attr("id", function(d, i) { return "node"+i+"Text"; });
         }
 
         scope.appendArrow = function() {
@@ -226,8 +226,8 @@ angular.module("MyApp")
           newData.push([]);
           indices = indices.data(newData);
           indices.enter()
-                .append("text")
-                .attr("id", function(d, i) { return "index"+i; });
+                 .append("text")
+                 .attr("id", function(d, i) { return "index"+i; });
         }
 
         scope.updateAllNodes = function(elements) {
@@ -251,47 +251,86 @@ angular.module("MyApp")
                 .attr("y2", function(d) { return d.target.y; });
         }
 
+        scope.updateAllIndices = function(indexData) {
+          indices = indices.data(indexData);
+          indices.attr("x", function(d) { return d.x; })
+                 .attr("y", function(d) { return d.y; });
+        }
+
         scope.deleteNewElements = function() {
           svg.select("#newSVGElements").data([]).exit().remove();
         }
 
-        scope.transitionToNewList = function(elements, edges, indexData, labelData) {
+        scope.updateAllNodesAndTransition = function(elements) {
           nodes = nodes.data(elements);
-          arrows = arrows.data(edges);
-          indices = indices.data(indexData);
-          labels = labels.data(labelData);
 
           nodes.select("rect")
-               .transition()
-               .duration(animationDuration)
-               .attr("x", function(d) { return d.x; })
-               .attr("y", function(d) { return d.y; });
+          .transition()
+          .duration(animationDuration)
+          .attr("x", function(d) { return d.x; })
+          .attr("y", function(d) { return d.y; });
 
           nodes.select("text")
-               .transition()
-               .duration(animationDuration)
-               .text(function(d) { return d.value; })
-               .attr("x", function(d) { return d.x + xTextOffset; })
-               .attr("y", function(d) { return d.y + yTextOffset; });
+          .transition()
+          .duration(animationDuration)
+          .text(function(d) { return d.value; })
+          .attr("x", function(d) { return d.x + xTextOffset; })
+          .attr("y", function(d) { return d.y + yTextOffset; });
+        }
+
+        scope.updateAllArrowsAndTransition = function(edges) {
+          arrows = arrows.data(edges);
 
           arrows.transition()
-                .duration(animationDuration)
-                .attr("x1", function(d) { return d.source.x; })
-                .attr("y1", function(d) { return d.source.y; })
-                .attr("x2", function(d) { return d.target.x; })
-                .attr("y2", function(d) { return d.target.y; });
+          .duration(animationDuration)
+          .attr("x1", function(d) { return d.source.x; })
+          .attr("y1", function(d) { return d.source.y; })
+          .attr("x2", function(d) { return d.target.x; })
+          .attr("y2", function(d) { return d.target.y; });
+        }
+
+        scope.updateAllIndicesAndTransition = function(indexData) {
+          indices = indices.data(indexData);
 
           indices.transition()
-                 .duration(animationDuration)
-                 .text(function(d) { return d.value; })
-                 .attr("x", function(d) { return d.x; })
-                 .attr("y", function(d) { return d.y; });
+          .duration(animationDuration)
+          .text(function(d) { return d.value; })
+          .attr("x", function(d) { return d.x; })
+          .attr("y", function(d) { return d.y; });
+        }
+
+        scope.updateAllLabelsAndTransition = function(labelData) {
+          labels = labels.data(labelData);
 
           labels.transition()
-                .duration(animationDuration)
-                .text(function(d) { return d.text; })
-                .attr("x", function(d) { return d.x; })
-                .attr("y", function(d) { return d.y; });
+          .duration(animationDuration)
+          .text(function(d) { return d.text; })
+          .attr("x", function(d) { return d.x; })
+          .attr("y", function(d) { return d.y; });
+        }
+
+        scope.deleteNode = function(index) {
+          var newData = nodes.data();
+          newData.splice(index, 1);
+          nodes = nodes.data(newData);
+          nodes.exit().remove();
+          scope.updateAllNodes(newData);
+        }
+
+        scope.deleteArrow = function(index) {
+          var newData = arrows.data();
+          newData.splice(index, 1);
+          arrows = arrows.data(newData);
+          arrows.exit().remove();
+          scope.updateAllArrows(newData);
+        }
+
+        scope.deleteIndex = function() {
+          var newData = indices.data();
+          newData.splice(newData.length-1, 1);
+          indices = indices.data(newData);
+          indices.exit().remove();
+          scope.updateAllIndices(newData);
         }
 
         $rootScope.$emit("Directive loaded", {});

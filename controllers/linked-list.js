@@ -151,8 +151,7 @@ angular.module("MyApp")
       $scope.animationDisabled = true;
 
       var currentStep = 0;
-      if (index > 0) {
-        // prev node exists
+      if (index > 0) { // prev node exists
         displayLabel(0, "prevLabel", prevLabelIndex);
         currentStep++;
 
@@ -170,23 +169,21 @@ angular.module("MyApp")
         }
       }
 
-      if (index < values.length) {
-        // next node exists
-        if (index == 0) {
-          // "next node" is the head
-          var label = "headLabel";
+      if (index < values.length) { // next node exists
+        if (index == 0) { // "next node" is the head
+          var labelText = "headLabel";
           var labelIndex = headLabelIndex;
         } else {
-          var label = "nextLabel";
+          var labelText = "nextLabel";
           var labelIndex = nextLabelIndex;
         }
         animateStep(currentStep, function() {
-          displayLabel(index, label, labelIndex);
+          displayLabel(index, labelText, labelIndex);
         });
         currentStep++;
 
         animateStep(currentStep, function() {
-          moveLabelToNode(index, label, labelIndex);
+          moveLabelToNode(index, labelText, labelIndex);
         });
         currentStep++;
       }
@@ -198,38 +195,38 @@ angular.module("MyApp")
       });
       currentStep++;
 
-      // create new arrow (from new node to next node or from prev node to new node)
-      var newEdge;
-      animateStep(currentStep, function() {
-        newEdge = createNewArrow(newElem);
-      });
-
-      if (index < values.length) {
-        // next node exists
+      if (values.length > 0) { // new arrow needed
+        // create new arrow (from new node to next node or from prev node to new node)
+        var newEdge;
         animateStep(currentStep, function() {
-          // point new node's arrow to next node
-          pointFromNewNodeToNextNode(index, newEdge);
+          newEdge = createNewArrow(newElem);
         });
-        currentStep++;
-      }
 
-      if (index > 0) {
-        // prev node exists
-        animateStep(currentStep, function() {
-          // point prev node's arrow to new node
-          pointFromPrevNodeToNewNode(index, newElem, newEdge);
-        });
-        currentStep++;
+        if (index < values.length) { // next node exists
+          animateStep(currentStep, function() {
+            // point new node's arrow to next node
+            pointFromNewNodeToNextNode(index, newEdge);
+          });
+          currentStep++;
+        }
+
+        if (index > 0) { // prev node exists
+          animateStep(currentStep, function() {
+            // point prev node's arrow to new node
+            pointFromPrevNodeToNewNode(index, newElem, newEdge);
+          });
+          currentStep++;
+        }
       }
 
       animateStep(currentStep, function() {
         transformIntoBiggerList(index, value);
         resetScope();
       });
+      currentStep++;
 
       // clear head label if needed
       if (index == 0) {
-        currentStep++;
         animateStep(currentStep, function() {
           labelData[headLabelIndex] = {
             text: "head"
@@ -330,7 +327,7 @@ angular.module("MyApp")
       convertData();
 
       // reposition elements as before final step and delete new elements
-      repositionToBeforeFinalStep(index);
+      repositionToBeforeFinalAddStep(index);
       $scope.deleteNewElements();
 
       convertData();
@@ -340,10 +337,13 @@ angular.module("MyApp")
         headLabel.x = calcXPosition(0, values.length) + xTextOffset;
         headLabel.y = labelY;
       }
-      $scope.transitionToNewList(elements, edges, indexData, labelData);
+      $scope.updateAllNodesAndTransition(elements);
+      $scope.updateAllArrowsAndTransition(edges);
+      $scope.updateAllIndicesAndTransition(indexData);
+      $scope.updateAllLabelsAndTransition(labelData);
     }
 
-    function repositionToBeforeFinalStep(index) {
+    function repositionToBeforeFinalAddStep(index) {
       var length = values.length;
 
       elements.forEach(function(element, i) {
@@ -395,43 +395,138 @@ angular.module("MyApp")
       var index = $scope.remove.index;
       $scope.animationDisabled = true;
       var currentStep = 0;
-/*
-      if (index > 0) {
-        // prev node exists
+
+      if (index > 0) { // prev node exists
         // display prev label
         animateStep(currentStep, function() {
-          displayLabel();
+          displayLabel(0, "prevLabel", prevLabelIndex);
+        });
+        currentStep++;
+
+        animateStep(currentStep, function() {
+          moveLabelToNode(0, "prevLabel", prevLabelIndex);
         });
         currentStep++;
 
         // move prev label along to prev node
         for (var i = 0; i < index-1; i++) {
           animateStep(currentStep, function() {
-            moveLabelAlong(index);
+            moveLabelAlong("prevLabel", prevLabelIndex);
           });
           currentStep++;
         }
       }
 
-      if (index == 0) {
-        // display head label above head
+      // display next label if next next node exists or removing head
+      if (index == 0 || index < values.length-1) {
+        if (index == 0) { // "next node" is head
+          var labelText = "headLabel";
+          var labelIndex = headLabelIndex;
+        } else { // next next node exists
+          var labelText = "nextLabel";
+          var labelIndex = nextLabelIndex;
+        }
         animateStep(currentStep, function() {
-          displayHeadLabel();
+          displayLabel(index, labelText, labelIndex);
         });
         currentStep++;
-        // move head label to next node
-      } else if (index < values.length-2) {
-        // next next node exists
-        // display next label
+
+        animateStep(currentStep, function() {
+          moveLabelToNode(index, labelText, labelIndex);
+        });
+        currentStep++;
+      }
+
+      if (index != 0 && index < values.length-1) {
         // move next label along to next next node
+        animateStep(currentStep, function() {
+          moveLabelAlong("nextLabel", nextLabelIndex);
+        });
+        currentStep++;
       }
+
       // move node(#index) down to bottom level
-      if (index < values.length-2) {
+      animateStep(currentStep, function() {
+        moveNodeDown(index);
+      });
+      currentStep++;
+
+      if (index != 0 && index < values.length-1) { // prev and next arrows exists
         // point prev node to next node
+        animateStep(currentStep, function() {
+          pointFromPrevNodeToNextNode(index);
+        });
+        currentStep++;
       }
+
       // transform into smaller list and delete node(#index)
+      animateStep(currentStep, function() {
+        transformIntoSmallerList(index);
+        resetScope();
+      });
+      currentStep++;
+
+      // clear head label if needed
       if (index == 0) {
-        // clear head label
+        animateStep(currentStep, function() {
+          labelData[headLabelIndex] = {
+            text: "head"
+          }
+          $scope.updateLabelPosition("headLabel", labelData);
+        });
       }
-    }*/
+    }
+
+    function moveNodeDown(index) {
+      var node = elements[index];
+      node.y = bottomY;
+      $scope.updateNodePosition("node"+index, [node]);
+
+      if (index > 0) { // prev arrow exists
+        var prevArrow = edges[index-1];
+        prevArrow.target.y = node.y + square/2;
+        $scope.updateArrowPosition("arrow"+(index-1)+index, [prevArrow]);
+      }
+      if (index < values.length-1) {  // next arrow exists
+        var nextNode = elements[index+1];
+        var nextArrow = edges[index];
+        nextArrow.source.y = node.y + square/2;
+        $scope.updateArrowPosition("arrow"+index+(index+1), [nextArrow]);
+      }
+    }
+
+    function pointFromPrevNodeToNextNode(index) {
+      var nextNode = elements[index+1];
+      var prevArrow = edges[index-1];
+      prevArrow.target.x = nextNode.x;
+      prevArrow.target.y = nextNode.y + square/2;
+      $scope.updateArrowPosition("arrow"+(index-1)+index, [prevArrow]);
+    }
+
+    function transformIntoSmallerList(index) {
+      // delete node#index, arrow#index#(index+1)/arrow#(index-1)#index, index#index
+      $scope.deleteNode(index);
+      $scope.deleteIndex(index);
+      if (index == values.length-1) { // delete prev arrow
+        $scope.deleteArrow(index-1);
+      } else { // delete next arrow
+        $scope.deleteArrow(index);
+      }
+
+      values.splice(index, 1);
+      convertData();
+
+      // animate final step
+      if (index == 0 && values.length != 0) {
+        var headLabel = labelData[headLabelIndex];
+        headLabel.x = calcXPosition(0, values.length) + xTextOffset;
+        headLabel.y = labelY;
+      }
+      $scope.updateAllNodesAndTransition(elements);
+      $scope.updateAllArrowsAndTransition(edges);
+      $scope.updateAllIndicesAndTransition(indexData);
+      $scope.updateAllLabelsAndTransition(labelData);
+
+    }
+
   });
