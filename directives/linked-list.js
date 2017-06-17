@@ -31,13 +31,14 @@ angular.module("MyApp")
             constructIndices(indexData);
           }
           if (labelData) {
-            contructLabels(labelData);
+            constructLabels(labelData);
           }
         }
 
         function constructNodes(elements) {
           nodes = svg.append("svg:g")
                      .attr("id", "nodes")
+                     .attr("class", "nodes")
                      .selectAll("g")
                      .data(elements);
 
@@ -89,14 +90,23 @@ angular.module("MyApp")
         function constructIndices(indexData) {
           indices = svg.append("svg:g")
                        .attr("id", "indices")
-                       .selectAll("g")
+                       .attr("class", "indices")
+                       .selectAll("text")
                        .data(indexData);
+
+          indices.enter()
+                 .append("text")
+                 .attr("id", function(d, i) { return "index"+i; })
+                 .text(function(d) { return d.value; })
+                 .attr("x", function(d) { return d.x + xTextOffset; })
+                 .attr("y", function(d) { return d.y + yTextOffset; });
         }
 
         function constructLabels(labelData) {
           labels = svg.append("svg:g")
                       .attr("id", "labels")
-                      .selectAll("g")
+                      .attr("class", "labels")
+                      .selectAll("text")
                       .data(labelData);
         }
 
@@ -121,7 +131,8 @@ angular.module("MyApp")
                  .text(function(d) { return d.value; })
                  .attr("id", "newNodeText")
                  .attr("x", function(d) { return d.x + xTextOffset; })
-                 .attr("y", function(d) { return d.y + yTextOffset; });
+                 .attr("y", function(d) { return d.y + yTextOffset; })
+                 .attr("fill", "white");
         }
 
         scope.updateNodePosition = function(id, newData) {
@@ -189,7 +200,15 @@ angular.module("MyApp")
           arrows.enter()
                 .append("line")
                 .attr("id", function(d, i) { return "arrow"+i+(i+1); });
+        }
 
+        scope.appendIndex = function() {
+          var newData = indices.data();
+          newData.push([]);
+          indices = indices.data(newData);
+          indices.enter()
+                .append("text")
+                .attr("id", function(d, i) { return "index"+i; });
         }
 
         scope.updateAllNodes = function(elements) {
@@ -217,10 +236,11 @@ angular.module("MyApp")
           svg.select("#newSVGElements").data([]).exit().remove();
         }
 
-        scope.transitionToNewData = function(elements, edges) {
-
+        scope.transitionToNewData = function(elements, edges, indexData) {
           nodes = nodes.data(elements);
           arrows = arrows.data(edges);
+          indices = indices.data(indexData);
+
           nodes.select("rect")
                .transition()
                .duration(animationDuration)
@@ -241,6 +261,11 @@ angular.module("MyApp")
                 .attr("x2", function(d) { return d.target.x; })
                 .attr("y2", function(d) { return d.target.y; });
 
+          indices.transition()
+                 .duration(animationDuration)
+                 .text(function(d) { return d.value; })
+                 .attr("x", function(d) { return d.x + xTextOffset; })
+                 .attr("y", function(d) { return d.y + yTextOffset; });
         }
 
         $rootScope.$emit("Directive loaded", {});

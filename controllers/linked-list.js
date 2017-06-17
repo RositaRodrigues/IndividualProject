@@ -11,7 +11,7 @@ angular.module("MyApp")
     var h = $scope.dimensions.h;
     var square = 50;
     var edgeLength = 50;
-    nodeLimit = Math.floor((w - 2 * square) / (square + edgeLength)) + 1;
+    $scope.nodeLimit = Math.floor((w - 2 * square) / (square + edgeLength)) + 1;
     var labelHeight = 10;
     var indicesY = h/4 - square/2;
     var topY = h/2 - square/2;
@@ -30,14 +30,11 @@ angular.module("MyApp")
     var indexData;
     var labelData;
 
-    $scope.values = values; // not needed in scope
-    $scope.calcXPosition = calcXPosition; // not needed in scope
-
     restart();
 
     $rootScope.$on("Directive loaded", function() {
       if (elements[0]) {
-        $scope.constructInitialList(elements, edges);
+        $scope.constructInitialList(elements, edges, indexData, labelData);
       }
       directiveLoaded = true;
     });
@@ -46,7 +43,7 @@ angular.module("MyApp")
       resetScope();
       convertData();
       if (directiveLoaded) {
-        $scope.constructInitialList(elements, edges);
+        $scope.constructInitialList(elements, edges, indexData, labelData);
       }
     }
 
@@ -60,6 +57,7 @@ angular.module("MyApp")
       }
       $scope.animationDisabled = false;
       $scope.errorMessage = "";
+      $scope.values = values;
     }
 
     function convertData() {
@@ -96,13 +94,14 @@ angular.module("MyApp")
 
         // indexData for indices
         var index = {
-          key: i,
+          value: i,
           x: element.x,
           y: indicesY
         }
         indexData.push(index);
       });
 
+      // labelData for labels
       var prevLabel = {
           text: "prev",
           x: calcXPosition(0),
@@ -137,60 +136,54 @@ angular.module("MyApp")
     }
 
     $scope.addNode = function() {
-      if (values.length >= nodeLimit) {
-        $scope.errorMessage = "Node Limit Reached";
-      } else {
-        $scope.errorMessage = "";
+      var index = $scope.add.index;
+      var value = $scope.add.value;
 
-        var index = $scope.add.index;
-        var value = $scope.add.value;
+      $scope.animationDisabled = true;
 
-        $scope.animationDisabled = true;
+      var currentStep = 0;
+      // 1. create new node with rect and text
+      // $scope.createNewNode(newElem);
+      var newElem = createNewNode(index, value);
+      // 2. move new node to bottom position
+      animateStep(currentStep, function() {
+        moveNewNodeAlong(newElem);
+      });
+      currentStep++;
 
-        var currentStep = 0;
-        // 1. create new node with rect and text
-        // $scope.createNewNode(newElem);
-        var newElem = createNewNode(index, value);
-        // 2. move new node to bottom position
+      // 3. create new arrow (from new node to next node or from prev node to new node)
+      var newEdge;
+      animateStep(currentStep, function() {
+        newEdge = createNewArrow(newElem);
+      });
+
+      if (index < values.length) {
+        // next node exists
         animateStep(currentStep, function() {
-          moveNewNodeAlong(newElem);
+          // 4. point new node's arrow to next node
+          pointFromNewNodeToNextNode(index, newEdge);
         });
         currentStep++;
-
-        // 3. create new arrow (from new node to next node or from prev node to new node)
-        var newEdge;
-        animateStep(currentStep, function() {
-          newEdge = createNewArrow(newElem);
-        });
-
-        if (index < values.length) {
-          // next node exists
-          animateStep(currentStep, function() {
-            // 4. point new node's arrow to next node
-            pointFromNewNodeToNextNode(index, newEdge);
-          });
-          currentStep++;
-        }
-
-        if (index > 0) {
-          // prev node exists
-          animateStep(currentStep, function() {
-            // 5. point prev node's arrow to new node
-            pointFromPrevNodeToNewNode(index, newElem, newEdge);
-          });
-          currentStep++;
-        }
-
-        animateStep(currentStep, function() {
-          // 6. move new node into list at level above
-          transformIntoNewList(index, value);
-          // 7. update data, create space for new data, reposition elements as before final step
-          // $scope.updateDataAndReposition(index);
-          // 8. reposition as new list
-          // $scope.updateVisuals();
-          resetScope();
-        });
       }
+
+      if (index > 0) {
+        // prev node exists
+        animateStep(currentStep, function() {
+          // 5. point prev node's arrow to new node
+          pointFromPrevNodeToNewNode(index, newElem, newEdge);
+        });
+        currentStep++;
+      }
+
+      animateStep(currentStep, function() {
+        // 6. move new node into list at level above
+        transformIntoNewList(index, value);
+        // 7. update data, create space for new data, reposition elements as before final step
+        // $scope.updateDataAndReposition(index);
+        // 8. reposition as new list
+        // $scope.updateVisuals();
+        resetScope();
+      });
     }
 
     function createNewNode(index, value) {
@@ -258,9 +251,10 @@ angular.module("MyApp")
     }
 
     function transformIntoNewList(index, value) {
-      // create new space for new node and arrow in list
+      // create new space for new node, arrow, index in list
       $scope.appendNode();
       $scope.appendArrow();
+      $scope.appendIndex();
 
       // insert value into values and convert into new data for svg elements
       values.splice(index, 0, value);
@@ -272,7 +266,7 @@ angular.module("MyApp")
 
       convertData();
       // animate final step
-      $scope.transitionToNewData(elements, edges);
+      $scope.transitionToNewData(elements, edges, indexData);
     }
 
     function repositionToBeforeFinalStep(index) {
