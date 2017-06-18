@@ -1,5 +1,5 @@
 angular.module("MyApp")
-  .directive('linkedList', function($rootScope) {
+  .directive('visualization', function($rootScope) {
     return {
       restrict: 'E',
       scope: false,

@@ -26,19 +26,9 @@
             <div id="sidebar-wrapper">
                 <ul class="sidebar-nav">
                     <li class="sidebar-brand">Data Structures</li>
-                    <!-- <li ng-repeat="item in [0,1,2]">
-                      <a>{{item}}</a>
-                    </li> -->
-
                     <li ng-repeat="item in menu" ng-class="{active: item.route == menuActive }">
                       <a href="#{{item.route}}" ng-click="updatePage(item.label)">{{item.label}}</a>
                     </li>
-                    <!-- <li><a href="#/linkedList">Linked Based List</a></li>
-                    <li><a href="#">Array Based List</a></li>
-                    <li><a href="#">Linked Based Stack</a></li>
-                    <li><a href="#">Array Based Stack</a></li>
-                    <li><a href="#">Linked Based Queue</a></li>
-                    <li><a href="#">Array Based Queue</a></li> -->
                 </ul>
             </div>
             <!-- /#sidebar-wrapper -->
@@ -69,7 +59,7 @@
       <script type="text/javascript" src="app.js"></script>
       <script type="text/javascript" src="controllers/linked-list.js"></script>
       <script type="text/javascript" src="controllers/nav.js"></script>
-      <script type="text/javascript" src="directives/linked-list.js"></script>
+      <script type="text/javascript" src="directives/visualization.js"></script>
 
       <!-- Menu Toggle Script -->
       <script>

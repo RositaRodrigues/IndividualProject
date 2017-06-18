@@ -37,6 +37,7 @@ angular.module("MyApp")
 
     $rootScope.$on("Directive loaded", function() {
       if (elements[0]) {
+        console.log("I heard you");
         $scope.constructInitialList(elements, edges, indexData, labelData);
       }
       directiveLoaded = true;
