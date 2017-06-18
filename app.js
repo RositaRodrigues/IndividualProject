@@ -5,5 +5,14 @@ app.config(['$routeProvider', function($routeProvider) {
   .when('/', {
     templateUrl: 'views/linked-list.html',
     controller: 'LinkedListCtrl'
+  })
+
+  .when('/linkedList', {
+    templateUrl: 'views/linked-list.html',
+    controller: 'LinkedListCtrl'
+  })
+
+  .otherwise({
+    redirectTo: '/'
   });
 }]);
