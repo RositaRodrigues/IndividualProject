@@ -20,7 +20,8 @@ text {
 }
 
 .labels text {
-  fill: red;
+  fill: black;
+  font-weight: bold;
 }
 
 rect {

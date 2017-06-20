@@ -1,5 +1,5 @@
 angular.module("MyApp")
-  .controller("LinkedListCtrl", function($rootScope, $scope, $timeout) {
+  .controller("LinkedListCtrl", function($rootScope, $scope, $timeout, Utils) {
     var directiveLoaded = false;
     $scope.dimensions =  {
         w: 800,
@@ -19,11 +19,11 @@ angular.module("MyApp")
     $scope.maxValue = 25;
     var animationDuration = $scope.animationDuration; // ms
     var pauseDuration = 50; // ms
-    var valuesExamples = [[ 10, 15 ],
+    var valuesExamples = [[ ],
+                          [ 10, 15 ],
                           [ 25, 10, 16, 19, 11 ],
-                          [ ],
                           [ 5, 10, 16, 19, 11, 15, 20, 17 ]];
-    var values = valuesExamples[1].slice();
+    var values = valuesExamples[2].slice();
     var elements;
     var edges;
     var indexData;
@@ -61,6 +61,7 @@ angular.module("MyApp")
       $scope.animationDisabled = false;
       $scope.errorMessage = "";
       $scope.values = values;
+      $scope.colour = Utils.getRandomColour();
     }
 
     function convertData() {

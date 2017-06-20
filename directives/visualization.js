@@ -7,6 +7,7 @@ angular.module("MyApp")
         var w = scope.dimensions.w;
         var h = scope.dimensions.h;
         var animationDuration = scope.animationDuration; // TODO: use watch variable if animation panel ever gets created
+        var colour = scope.colour;
         var svg = d3.select(element[0])
                     .append("svg")
                     .attr("width", w)
@@ -52,7 +53,7 @@ angular.module("MyApp")
                   .attr("y", function(d) { return d.y; })
                   .attr("width", square)
                   .attr("height", square)
-                  .attr("fill", function(d) { return "rgb(0, 0, "+(d.value*10)+")"; });
+                  .attr("fill", colour);
 
           newNodes.append("text")
                   .text(function(d) { return d.value; })
@@ -132,7 +133,7 @@ angular.module("MyApp")
                  .attr("y", function(d) { return d.y; })
                  .attr("width", square)
                  .attr("height", square)
-                 .attr("fill", function(d) { return "rgb(0, 0, "+(d.value*10)+")"; });
+                 .attr("fill", colour);
 
           newNode.append("text")
                  .text(function(d) { return d.value; })
@@ -235,7 +236,7 @@ angular.module("MyApp")
           nodes.select("rect")
                .attr("x", function(d) { return d.x; })
                .attr("y", function(d) { return d.y; })
-               .attr("fill", function(d) { return "rgb(0, 0, "+(d.value*10)+")"; });
+               .attr("fill", colour);
 
           nodes.select("text")
                .text(function(d) { return d.value; })
