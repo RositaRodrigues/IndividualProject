@@ -74,7 +74,7 @@ angular.module("MyApp")
         var element = {
           key: i,
           value: val,
-          x: calcXPosition(i),
+          x: calcXPositionOfLinkedList(i),
           y: topY
         }
         elements.push(element);
@@ -132,13 +132,22 @@ angular.module("MyApp")
       restart();
     }
 
-    function calcXPosition(index, numberOfNodes) {
-      return frame(numberOfNodes) + index * (square + edgeLength);
+    function calcXPositionOfLinkedList(index, numberOfNodes) {
+      return frameLinkedList(numberOfNodes) + index * (square + edgeLength);
     }
 
-    function frame(newNumberOfNodes) {
+    function calcXPositionOfArray(index, numberOfNodes) {
+      return frameArray(numberOfNodes) + index * square;
+    }
+
+    function frameLinkedList(newNumberOfNodes) {
       var numberOfNodes = newNumberOfNodes || values.length;
       return (w - numberOfNodes * square - (numberOfNodes - 1) * edgeLength) / 2;
+    }
+
+    function frameArray(newNumberOfNodes) {
+      var numberOfNodes = newNumberOfNodes || values.length;
+      return (w - numberOfNodes * square) / 2;
     }
 
     function animateStep(step, func) {
@@ -239,14 +248,14 @@ angular.module("MyApp")
 
     function displayLabel(index, labelText, labelIndex) {
       var label = labelData[labelIndex];
-      label.x = calcXPosition(index) - edgeLength + xTextOffset;
+      label.x = calcXPositionOfLinkedList(index) - square + xTextOffset;
       label.y = labelY;
       $scope.updateLabelPosition(labelText, labelData);
     }
 
     function moveLabelToNode(index, labelText, labelIndex) {
       var label = labelData[labelIndex];
-      label.x = calcXPosition(index) + xTextOffset;
+      label.x = calcXPositionOfLinkedList(index) + xTextOffset;
       label.y = labelY;
       $scope.updateLabelPosition(labelText, labelData);
     }
@@ -261,7 +270,7 @@ angular.module("MyApp")
       var newElem = {
         key: index,
         value: value,
-        x: calcXPosition(index, values.length+1),
+        x: calcXPositionOfLinkedList(index, values.length+1),
         y: bottomY
       }
       $scope.createNewNode(newElem);
@@ -337,7 +346,7 @@ angular.module("MyApp")
       // animate final step
       if (index == 0) {
         var headLabel = labelData[headLabelIndex];
-        headLabel.x = calcXPosition(0, values.length) + xTextOffset;
+        headLabel.x = calcXPositionOfLinkedList(0, values.length) + xTextOffset;
         headLabel.y = labelY;
       }
       $scope.updateAllNodesAndTransition(elements);
@@ -351,11 +360,11 @@ angular.module("MyApp")
 
       elements.forEach(function(element, i) {
         if (i < index) {
-          element.x = calcXPosition(i, length-1);
+          element.x = calcXPositionOfLinkedList(i, length-1);
         } else if (i == index) {
-          element.x = calcXPosition(i, length);
+          element.x = calcXPositionOfLinkedList(i, length);
         } else {
-          element.x = calcXPosition(i-1, length-1);
+          element.x = calcXPositionOfLinkedList(i-1, length-1);
         }
         element.y = (i == index) ? bottomY : topY;
       });
@@ -364,23 +373,23 @@ angular.module("MyApp")
 
       edges.forEach(function(edge, i) {
         if (i < index) {
-          edge.source.x = calcXPosition(i, length-1) + square;
+          edge.source.x = calcXPositionOfLinkedList(i, length-1) + square;
         } else if (i == index) {
-          edge.source.x = calcXPosition(i, length) + square;
+          edge.source.x = calcXPositionOfLinkedList(i, length) + square;
         } else {
-          edge.source.x = calcXPosition(i-1, length-1) + square;
+          edge.source.x = calcXPositionOfLinkedList(i-1, length-1) + square;
         }
 
         edge.source.y = square/2 + ((i == index) ? bottomY : topY);
 
         if (i == index-1) { // prevArrow
-          edge.target.x = calcXPosition(i+1, length) + square/2;
+          edge.target.x = calcXPositionOfLinkedList(i+1, length) + square/2;
         } else if (i < index) {
-          edge.target.x = calcXPosition(i+1, length-1);
+          edge.target.x = calcXPositionOfLinkedList(i+1, length-1);
         } else if (i == index) { // new node's arrow
-          edge.target.x = calcXPosition(i, length-1) + square/2;
+          edge.target.x = calcXPositionOfLinkedList(i, length-1) + square/2;
         } else {
-          edge.target.x = calcXPosition(i, length-1);
+          edge.target.x = calcXPositionOfLinkedList(i, length-1);
         }
 
         if (i == index-1) { // prevArrow
@@ -522,7 +531,7 @@ angular.module("MyApp")
       // animate final step
       if (index == 0 && values.length != 0) {
         var headLabel = labelData[headLabelIndex];
-        headLabel.x = calcXPosition(0, values.length) + xTextOffset;
+        headLabel.x = calcXPositionOfLinkedList(0, values.length) + xTextOffset;
         headLabel.y = labelY;
       }
       $scope.updateAllNodesAndTransition(elements);
