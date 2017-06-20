@@ -21,7 +21,7 @@ angular.module("MyApp")
     var pauseDuration = 50; // ms
     var valuesExamples = [[ 10, 15 ],
                           [ 25, 10, 16, 19, 11 ],
-                          [ 5, 2, 25, 10, 18 ],
+                          [ ],
                           [ 5, 10, 16, 19, 11, 15, 20, 17 ]];
     var values = valuesExamples[1].slice();
     var elements;
@@ -37,7 +37,6 @@ angular.module("MyApp")
 
     $rootScope.$on("Directive loaded", function() {
       if (elements[0]) {
-        console.log("I heard you");
         $scope.constructInitialList(elements, edges, indexData, labelData);
       }
       directiveLoaded = true;
@@ -320,7 +319,9 @@ angular.module("MyApp")
     function transformIntoBiggerList(index, value) {
       // create new space for new node, arrow, index in list
       $scope.appendNode();
-      $scope.appendArrow();
+      if (values.length > 0) {
+        $scope.appendArrow();
+      }
       $scope.appendIndex();
 
       // insert value into values and convert into new data for svg elements
