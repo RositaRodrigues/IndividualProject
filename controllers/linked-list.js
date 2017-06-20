@@ -32,6 +32,7 @@ angular.module("MyApp")
     var prevLabelIndex = 1;
     var nextLabelIndex = 2;
     var xTextOffset = square/2;
+    $scope.colour = Utils.getRandomColour();
 
     restart();
 
@@ -61,7 +62,6 @@ angular.module("MyApp")
       $scope.animationDisabled = false;
       $scope.errorMessage = "";
       $scope.values = values;
-      $scope.colour = Utils.getRandomColour();
     }
 
     function convertData() {
