@@ -16,7 +16,7 @@ angular.module("MyApp")
     var topY = h/2 - square/2;
     var labelY = topY - 5;
     var bottomY = 3*h/4 - square/2;
-    $scope.maxValue = 25;
+    $scope.maxValue = 100;
     var animationDuration = $scope.animationDuration; // ms
     var pauseDuration = 50; // ms
     var valuesExamples = [[ ],
@@ -72,7 +72,6 @@ angular.module("MyApp")
       values.forEach(function(val, i) {
         // elements for nodes
         var element = {
-          key: i,
           value: val,
           x: calcXPositionOfLinkedList(i),
           y: topY
