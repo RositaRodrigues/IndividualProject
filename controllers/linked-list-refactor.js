@@ -139,23 +139,24 @@ angular.module("MyApp")
           }
         })
         .then(function() {
-          runAnimation(steps);
+          runAnimation();
         });
 
     }
 
-    function runAnimation(steps) {
+    function runAnimation() {
       $scope.currentStep = 0;
-      play(steps);
+      $scope.play();
     }
 
-    function play(steps) {
+    $scope.play = function() {
       steps.forEach(function(step, i) {
         if (i >= $scope.currentStep) {
+          var timeoutFactor = i - $scope.currentStep;
           var func = steps[i].function;
           var state = steps[i].state;
           var params = steps[i].params;
-          animateStep(angular.copy(i), function() {
+          animateStep(timeoutFactor, function() {
             func(state, params);
             $scope.currentStep++;
           });
