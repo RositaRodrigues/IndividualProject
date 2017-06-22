@@ -156,7 +156,7 @@ angular.module("MyApp")
              .attr("y2", function(d) { return d.target.y; });
         }
 
-        scope.updateNodePosition = function(id, newData) {
+        scope.updateNodePositionAndTransition = function(id, newData) {
           svg.select("#" + id)
              .data(newData);
 
@@ -173,11 +173,45 @@ angular.module("MyApp")
              .attr("y", function(d) { return d.y + yTextOffset; });
         }
 
-        scope.updateArrowPosition = function(id, newData) {
+        scope.updateArrowPositionAndTransition = function(id, newData) {
           svg.select("#" + id)
              .data(newData)
              .transition()
              .duration(animationDuration)
+             .attr("x1", function(d) { return d.source.x; })
+             .attr("y1", function(d) { return d.source.y; })
+             .attr("x2", function(d) { return d.target.x; })
+             .attr("y2", function(d) { return d.target.y; });
+        }
+
+        scope.updateLabelPositionAndTransition = function(id, newData) {
+          if (newData) {
+            labels = labels.data(newData);
+          }
+          svg.select("#"+id)
+             .transition()
+             .duration(animationDuration)
+             .text(function(d) { return d.text })
+             .attr("x", function(d) { return d.x; })
+             .attr("y", function(d) { return d.y; });
+        }
+
+        scope.updateNodePosition = function(id, newData) {
+          svg.select("#" + id)
+             .data(newData);
+
+          svg.select("#" + id + "Square")
+             .attr("x", function(d) { return d.x; })
+             .attr("y", function(d) { return d.y; });
+
+          svg.select("#" + id + "Text")
+             .attr("x", function(d) { return d.x + xTextOffset; })
+             .attr("y", function(d) { return d.y + yTextOffset; });
+        }
+
+        scope.updateArrowPosition = function(id, newData) {
+          svg.select("#" + id)
+             .data(newData)
              .attr("x1", function(d) { return d.source.x; })
              .attr("y1", function(d) { return d.source.y; })
              .attr("x2", function(d) { return d.target.x; })
@@ -189,8 +223,6 @@ angular.module("MyApp")
             labels = labels.data(newData);
           }
           svg.select("#"+id)
-             .transition()
-             .duration(animationDuration)
              .text(function(d) { return d.text })
              .attr("x", function(d) { return d.x; })
              .attr("y", function(d) { return d.y; });
@@ -271,6 +303,36 @@ angular.module("MyApp")
           scope.updateAllArrows(edges);
           scope.updateAllIndices(indexData);
           scope.updateAllLabels(labelData);
+        }
+
+        scope.setNodeInvisible = function(index) {
+          svg.select("#node" + index)
+             .attr("display", "none");
+        }
+
+        scope.setNodeVisible = function(index) {
+          svg.select("#node" + index)
+             .attr("display", "inline");
+        }
+
+        scope.setArrowInvisible = function(index) {
+          svg.select("#arrow" + index + (index+1))
+             .attr("display", "none");
+        }
+
+        scope.setArrowVisible = function(index) {
+          svg.select("#arrow" + index + (index+1))
+             .attr("display", "inline");
+        }
+
+        scope.setIndexInvisible = function(index) {
+          svg.select("#index" + index)
+             .attr("display", "none");
+        }
+
+        scope.setIndexVisible = function(index) {
+          svg.select("#index" + index)
+             .attr("display", "inline");
         }
 
         scope.deleteNewElements = function() {

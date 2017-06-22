@@ -89,7 +89,33 @@ angular.module("MyApp")
       });
       timers = [];
 
-      loadState(states[$scope.currentStep]);
+      var state = states[$scope.currentStep];
+      loadState(state);
+
+      if (state.nodes.newNode.visible) {
+        $scope.setNodeVisible(index);
+      } else {
+        $scope.setNodeInvisible(index);
+      }
+
+      if (index == values.length-1) {
+        var newArrowIndex = values.length-2;
+      } else {
+        var newArrowIndex = index;
+      }
+      // console.log(newArrowIndex);
+      if (state.arrows.newArrow.visible) {
+        $scope.setArrowVisible(newArrowIndex);
+      } else {
+        $scope.setArrowInvisible(newArrowIndex);
+      }
+
+      if (state.indices.newIndex.visible) {
+        $scope.setIndexVisible(values.length-1);
+      } else {
+        $scope.setIndexInvisible(values.length-1);
+      }
+
       $scope.updateAllAndTransition(nodes, arrows, indices, labels);
 
       if ($scope.animationRunning) {
@@ -128,9 +154,9 @@ angular.module("MyApp")
 
       initState()
         .then(function(previousState) {
-          if (index > 0) {
+          if (index > 0) { // prev node exists
             var currentState = displayLabelState(previousState, 0, "prev");
-            var step = { // prev node exists
+            var step = {
               function: updateLabelStep,
               state: currentState,
               params: ["prev", prevLabelIndex]
@@ -193,6 +219,47 @@ angular.module("MyApp")
           } else {
             return previousState;
           }
+        })
+        .then(function(previousState) {
+          if (index < values.length-1) { // next node exists
+            if (index == 0) { // "next node" is the head
+              var labelName = "head";
+              var labelIndex = headLabelIndex;
+            } else {
+              var labelName = "next";
+              var labelIndex = nextLabelIndex;
+            }
+            var currentState = moveLabelToNodeState(previousState, index, labelName);
+            var step = {
+              function: updateLabelStep,
+              state: currentState,
+              params: [labelName, labelIndex]
+            }
+            steps.push(step);
+            return currentState;
+          } else {
+            return previousState;
+          }
+        })
+        .then(function(previousState) {
+          var currentState = displayNewNodeState(previousState, index);
+          var step = {
+            function: displayNodeStep,
+            state: currentState,
+            params: [index]
+          }
+          steps.push(step);
+          return currentState;
+        })
+        .then(function(previousState) {
+          var currentState = displayNewArrowState(previousState, index);
+          var step = {
+            function: displayNewArrowStep,
+            state: currentState,
+            params: [index]
+          }
+          steps.push(step);
+          return currentState;
         })
         .then(function() {
           $scope.lastStep = steps.length;
@@ -257,13 +324,10 @@ angular.module("MyApp")
         indices[values.length-1].y = state.indices.newIndex.y;
       }
 
-      // labels[headLabelIndex].text = "head";
       labels[headLabelIndex].x = labelsState.head.x;
       labels[headLabelIndex].y = labelsState.head.y;
-      // labels[prevLabelIndex].text = "prev";
       labels[prevLabelIndex].x = labelsState.prev.x;
       labels[prevLabelIndex].y = labelsState.prev.y;
-      // labels[nextLabelIndex].text = "next";
       labels[nextLabelIndex].x = labelsState.next.x;
       labels[nextLabelIndex].y = labelsState.next.y;
     }
@@ -272,31 +336,60 @@ angular.module("MyApp")
       values.splice(index, 0, value);
 
       $scope.appendNode();
-      var newElem = {
+      var newNode = {
         value: value,
-        x: -(square+1),
-        y: 0
+        // x: -(square+1),
+        // y: 0
+        x: calcXPositionOfLinkedList(index),
+        y: bottomY
       }
-      nodes.splice(index, 0, newElem);
+      nodes.splice(index, 0, newNode);
       $scope.updateAllNodes(nodes);
+      $scope.setNodeInvisible(index);
 
       if (values.length > 0) {
         $scope.appendArrow();
-        var newEdge = {
-          source: {x: -5, y: 0},
-          target: {x: -5, y: 0}
+
+        if (index == values.length-1) {
+          // node inserted at end of list.
+          // new arrow will point from tail to new node.
+          var newArrowIndex = values.length-2;
+          var sourceNode = {
+            x: calcXPositionOfLinkedList(newArrowIndex, (values.length-1)),
+            y: topY
+          }
+        } else {
+          // new node inserted at beginning or middle of list.
+          // new arrow will point from new node to next node.
+          var newArrowIndex = index;
+          var sourceNode = {
+            x: newNode.x,
+            y: newNode.y
+          }
         }
-        arrows.splice(index, 0, newEdge);
+        var source = {
+          x: sourceNode.x + square,
+          y: sourceNode.y + square/2
+        }
+        var newArrow = {
+          source: source,
+          target: source
+        }
+        arrows.splice(index, 0, newArrow);
         $scope.updateAllArrows(arrows);
+        $scope.setArrowInvisible(newArrowIndex);
       }
 
       $scope.appendIndex();
       var newIndex = {
-        x: 0,
-        y: 0
+        // x: 0,
+        // y: 0
+        x: calcXPositionOfLinkedList(values.length-1) + xTextOffset,
+        y: indicesY
       }
       indices.splice(values.length-1, 0, newIndex);
       $scope.updateAllIndices(indices);
+      $scope.setIndexInvisible(values.length-1);
     }
 
     function initState() {
@@ -304,11 +397,12 @@ angular.module("MyApp")
         var indicesState = {
           first: {
             x: calcXPositionOfLinkedList(0, (values.length-1)) + xTextOffset,
-            y: indicesY,
+            y: indicesY
           },
           newIndex: {
-            x: 0,
-            y: 0
+            visible: false,
+            x: calcXPositionOfLinkedList(values.length-1) + xTextOffset,
+            y: indicesY
           }
         }
 
@@ -318,9 +412,31 @@ angular.module("MyApp")
             y: topY,
           },
           newNode: {
-            x: -(square+1),
-            y: 0
+            visible: false,
+            // x: -(square+1),
+            x: calcXPositionOfLinkedList(index),
+            y: bottomY
           }
+        }
+
+        if (index == values.length-1) {
+          // node inserted at end of list.
+          // new arrow will point from tail to new node.
+          var sourceNode = {
+            x: nodesState.first.x + (index-1) * (square + edgeLength),
+            y: nodesState.first.y
+          }
+        } else {
+          // new node inserted at beginning or middle of list.
+          // new arrow will point from new node to next node.
+          var sourceNode = {
+            x: nodesState.newNode.x,
+            y: nodesState.newNode.y
+          }
+        }
+        var source = {
+          x: sourceNode.x + square,
+          y: sourceNode.y + square/2
         }
 
         var arrowsState = {
@@ -329,10 +445,11 @@ angular.module("MyApp")
             y: nodesState.first.y + square/2
           },
           newArrow: {
-            x1: -5,
-            y1: 0,
-            x2: -5,
-            y2: 0
+            visible: false,
+            x1: source.x,
+            y1: source.y,
+            x2: source.x,
+            y2: source.y
           }
         }
 
@@ -369,7 +486,7 @@ angular.module("MyApp")
       var label = labels[labelIndex];
       label.x = state.labels[labelText].x;
       label.y = state.labels[labelText].y;
-      $scope.updateLabelPosition(labelText+"Label", labels);
+      $scope.updateLabelPositionAndTransition(labelText+"Label", labels);
     }
 
     function moveLabelToNodeState(previousState, index, lableName) {
@@ -388,6 +505,105 @@ angular.module("MyApp")
 
       states.push(currentState);
       return currentState;
+    }
+
+    function displayNewNodeState(previousState, index) {
+      var currentState = angular.copy(previousState);
+      /*
+      // var newNodePosition = {
+      //   x: calcXPositionOfLinkedList(index),
+      //   y: bottomY
+      // }
+      currentState.nodes.newNode.x = calcXPositionOfLinkedList(index);
+      currentState.nodes.newNode.y = bottomY;*/
+      currentState.nodes.newNode.visible = true;
+      states.push(currentState);
+      return currentState;
+    }
+
+    function displayNodeStep(state, params) {
+      /*
+      var nodeIndex = params[0];
+      var node = nodes[nodeIndex];
+      if (nodeIndex == index) { // node is new node
+        node.x = state.nodes.newNode.x;
+        node.y = state.nodes.newNode.y;
+      } else { // node is an original node in old list, calculate from first node
+        var firstNode = state.nodes.firstNode;
+        if (nodeIndex <= index) {
+          node.x = firstNode.x + nodeIndex * (square + edgeLength);
+        } else {
+          node.x = firstNode.x + (nodeIndex-1) * (square + edgeLength);
+        }
+        node.y = firstNode.y;
+      }
+      $scope.updateNodePosition("node"+nodeIndex, [node]);*/
+
+      $scope.setNodeVisible(index);
+    }
+
+    function displayNewArrowState(previousState, index) {
+      var currentState = angular.copy(previousState);
+/*
+      if (index == values.length-1) {
+        // node inserted at end of list.
+        // new arrow will point from tail to new node.
+        var sourceNode = {
+          x: currentState.nodes.first.x + (index-1) * (square + edgeLength),
+          y: currentState.nodes.first.y
+        }
+      } else {
+        // new node inserted at beginning or middle of list.
+        // new arrow will point from new node to next node.
+        var sourceNode = {
+          x: currentState.nodes.newNode.x,
+          y: currentState.nodes.newNode.y
+        }
+      }
+      var source = {
+        x: sourceNode.x + square,
+        y: sourceNode.y + square/2
+      }
+
+      currentState.arrows.newArrow = {
+        x1: source.x,
+        y1: source.y,
+        x2: source.x,
+        y2: source.y
+      }*/
+
+      currentState.arrows.newArrow.visible = true;
+      states.push(currentState);
+      return currentState;
+    }
+
+    function displayNewArrowStep(state) {
+      if (index == values.length-1) {
+        // new node inserted at end of list.
+        // new arrow is from prev node to new node.
+        var arrowIndex = index - 1;
+      } else {
+        // new node inserted at beginning or middle of list.
+        // new arrow is from new node to next node.
+        var arrowIndex = index;
+      }
+      /*
+      var newArrow = state.arrows.newArrow;
+      var arrow = arrows[arrowIndex];
+      arrow.source.x = newArrow.x1;
+      arrow.source.y = newArrow.y1;
+      arrow.target.x = newArrow.x2;
+      arrow.target.y = newArrow.y2;
+      if (index == values.length-1) {
+        // new node inserted at end of list.
+        // new arrow is from prev node to new node.
+        $scope.updateArrowPosition("arrow"+(index-1)+index, [arrow]);
+      } else {
+        // new node inserted at beginning or middle of list.
+        // new arrow is from new node to next node.
+        $scope.updateArrowPosition("arrow"+arrowIndex+(arrowIndex+1), [arrow]);
+      }*/
+      $scope.setArrowVisible(arrowIndex);
     }
 
     function restart() {
