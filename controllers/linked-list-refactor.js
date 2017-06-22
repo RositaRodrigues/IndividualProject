@@ -103,7 +103,7 @@ angular.module("MyApp")
       } else {
         var newArrowIndex = index;
       }
-      // console.log(newArrowIndex);
+
       if (state.arrows.newArrow.visible) {
         $scope.setArrowVisible(newArrowIndex);
       } else {
@@ -338,8 +338,6 @@ angular.module("MyApp")
       $scope.appendNode();
       var newNode = {
         value: value,
-        // x: -(square+1),
-        // y: 0
         x: calcXPositionOfLinkedList(index),
         y: bottomY
       }
@@ -382,8 +380,6 @@ angular.module("MyApp")
 
       $scope.appendIndex();
       var newIndex = {
-        // x: 0,
-        // y: 0
         x: calcXPositionOfLinkedList(values.length-1) + xTextOffset,
         y: indicesY
       }
@@ -413,7 +409,6 @@ angular.module("MyApp")
           },
           newNode: {
             visible: false,
-            // x: -(square+1),
             x: calcXPositionOfLinkedList(index),
             y: bottomY
           }
@@ -509,69 +504,17 @@ angular.module("MyApp")
 
     function displayNewNodeState(previousState, index) {
       var currentState = angular.copy(previousState);
-      /*
-      // var newNodePosition = {
-      //   x: calcXPositionOfLinkedList(index),
-      //   y: bottomY
-      // }
-      currentState.nodes.newNode.x = calcXPositionOfLinkedList(index);
-      currentState.nodes.newNode.y = bottomY;*/
       currentState.nodes.newNode.visible = true;
       states.push(currentState);
       return currentState;
     }
 
     function displayNodeStep(state, params) {
-      /*
-      var nodeIndex = params[0];
-      var node = nodes[nodeIndex];
-      if (nodeIndex == index) { // node is new node
-        node.x = state.nodes.newNode.x;
-        node.y = state.nodes.newNode.y;
-      } else { // node is an original node in old list, calculate from first node
-        var firstNode = state.nodes.firstNode;
-        if (nodeIndex <= index) {
-          node.x = firstNode.x + nodeIndex * (square + edgeLength);
-        } else {
-          node.x = firstNode.x + (nodeIndex-1) * (square + edgeLength);
-        }
-        node.y = firstNode.y;
-      }
-      $scope.updateNodePosition("node"+nodeIndex, [node]);*/
-
       $scope.setNodeVisible(index);
     }
 
     function displayNewArrowState(previousState, index) {
       var currentState = angular.copy(previousState);
-/*
-      if (index == values.length-1) {
-        // node inserted at end of list.
-        // new arrow will point from tail to new node.
-        var sourceNode = {
-          x: currentState.nodes.first.x + (index-1) * (square + edgeLength),
-          y: currentState.nodes.first.y
-        }
-      } else {
-        // new node inserted at beginning or middle of list.
-        // new arrow will point from new node to next node.
-        var sourceNode = {
-          x: currentState.nodes.newNode.x,
-          y: currentState.nodes.newNode.y
-        }
-      }
-      var source = {
-        x: sourceNode.x + square,
-        y: sourceNode.y + square/2
-      }
-
-      currentState.arrows.newArrow = {
-        x1: source.x,
-        y1: source.y,
-        x2: source.x,
-        y2: source.y
-      }*/
-
       currentState.arrows.newArrow.visible = true;
       states.push(currentState);
       return currentState;
@@ -587,22 +530,6 @@ angular.module("MyApp")
         // new arrow is from new node to next node.
         var arrowIndex = index;
       }
-      /*
-      var newArrow = state.arrows.newArrow;
-      var arrow = arrows[arrowIndex];
-      arrow.source.x = newArrow.x1;
-      arrow.source.y = newArrow.y1;
-      arrow.target.x = newArrow.x2;
-      arrow.target.y = newArrow.y2;
-      if (index == values.length-1) {
-        // new node inserted at end of list.
-        // new arrow is from prev node to new node.
-        $scope.updateArrowPosition("arrow"+(index-1)+index, [arrow]);
-      } else {
-        // new node inserted at beginning or middle of list.
-        // new arrow is from new node to next node.
-        $scope.updateArrowPosition("arrow"+arrowIndex+(arrowIndex+1), [arrow]);
-      }*/
       $scope.setArrowVisible(arrowIndex);
     }
 
