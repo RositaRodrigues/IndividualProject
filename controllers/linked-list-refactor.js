@@ -57,63 +57,83 @@ angular.module("MyApp")
     $scope.addNode = function() {
       var index = $scope.add.index;
       var value = $scope.add.value;
-      console.log("clicked");
-      if (index) {
-        $scope.animationDisabled = true;
+      $scope.animationDisabled = true;
 
-        insertNewDataAndUpdateCollections(index, value);
+      insertNewDataAndUpdateCollections(index, value);
 
-        initState()
-          .then(function(previousState) {
-            if (index > 0) {
-              var currentState = displayLabelState(previousState, 0, "prev");
-              var step = { // prev node exists
-                function: updateLabelStep,
-                state: currentState,
-                params: ["prev", prevLabelIndex]
-              }
-              steps.push(step);
-              return currentState;
-            } else {
-              return previousState;
+      initState()
+        .then(function(previousState) {
+
+          if (index > 0) {
+            var currentState = displayLabelState(previousState, 0, "prev");
+            var step = { // prev node exists
+              function: updateLabelStep,
+              state: currentState,
+              params: ["prev", prevLabelIndex]
             }
-          })
-          .then(function(previousState) {
-            if (index > 0) { // prev node exists
-              var currentState = moveLabelToNodeState(previousState, 0, "prev");
+            steps.push(step);
+            return currentState;
+          } else {
+            return previousState;
+          }
+        })
+        .then(function(previousState) {
+          if (index > 0) { // prev node exists
+            var currentState = moveLabelToNodeState(previousState, 0, "prev");
+            var step = {
+              function: updateLabelStep,
+              state: currentState,
+              params: ["prev", prevLabelIndex]
+            }
+            steps.push(step);
+            return currentState;
+          } else {
+            return previousState;
+          }
+        })
+        .then(function(previousState) {
+          if (index > 0) { // prev node exists
+            var currentState = previousState;
+            for (var i = 0; i < index-1; i++) {
+              currentState = moveLabelAlongState(previousState, "prev", prevLabelIndex);
               var step = {
                 function: updateLabelStep,
                 state: currentState,
                 params: ["prev", prevLabelIndex]
               }
               steps.push(step);
-              return currentState;
-            } else {
-              return previousState;
+              previousState = currentState;
             }
-          })
-          .then(function(previousState) {
-            if (index > 0) { // prev node exists
-              for (var i = 0; i < index-1; i++) {
-                var currentState = moveLabelAlongState(previousState, "prev", prevLabelIndex);
-                var step = {
-                  function: updateLabelStep,
-                  state: currentState,
-                  params: ["prev", prevLabelIndex]
-                }
-                steps.push(step);
-                previousState = currentState;
-              }
-              return currentState;
+            return currentState;
+          } else {
+            return previousState;
+          }
+        })
+        .then(function(previousState) {
+          if (index < values.length-1) { // next node exists
+            if (index == 0) { // "next node" is the head
+              var labelName = "head";
+              var labelIndex = headLabelIndex;
             } else {
-              return previousState;
+              var labelName = "next";
+              var labelIndex = nextLabelIndex;
             }
-          })
-          .then(function() {
-            runAnimation(steps);
-          });
+            var currentState = displayLabelState(previousState, index, labelName);
+            var step = {
+              function: updateLabelStep,
+              state: currentState,
+              params: [labelName, labelIndex]
+            }
+            steps.push(step);
+            return currentState;
+          } else {
+            return previousState;
+          }
+        })
+        .then(function() {
+          runAnimation(steps);
+        });
 
-      }
     }
 
     function runAnimation(steps) {
@@ -228,6 +248,7 @@ angular.module("MyApp")
       var label = currentState.labels[lableName];
       label.x = calcXPositionOfLinkedList(index, (values.length-1)) - square + xTextOffset;
       label.y = labelY;
+      // console.log(currentState);
       states.push(currentState);
       return currentState;
     }
