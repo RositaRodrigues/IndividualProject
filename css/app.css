@@ -55,3 +55,8 @@ header {
 header h1 {
   float:left;
 }
+
+svg {
+    display: block;
+    margin: auto;
+}

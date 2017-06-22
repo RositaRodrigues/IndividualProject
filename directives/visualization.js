@@ -334,7 +334,7 @@ angular.module("MyApp")
           scope.updateAllIndices(newData);
         }
 
-        $rootScope.$emit("Directive loaded", {});
+        $rootScope.$emit("Visualization loaded", {});
       }
     };
   });

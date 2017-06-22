@@ -4,5 +4,6 @@ python -m http.server 8888 &.
 Shutdown:
 ps // find *PID* for python
 kill -9 *PID*
+
 URL:
 http://localhost:8888/

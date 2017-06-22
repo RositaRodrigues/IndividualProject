@@ -4,26 +4,43 @@
         <meta charset="utf-8">
     </head>
     <body class="wrapper">
-
       <visualization></visualization>
       <div class="container-fluid row col-lg-12">
         <div class="row">
           <div class="col-lg-12">
-            <div>{{errorMessage}}</div>
-            <div>
-              Index: <input type="number" step="1" min="0" max="{{values.length}}" ng-model="add.index" style="width: 50px">
-              Value: <input type="number" step="1" min="0" max="{{maxValue}}" ng-model="add.value" style="width: 50px">
-              <button ng-click="addNode()" ng-disabled="animationDisabled || (values.length == nodeLimit)">Add Node</button>
-            </div>
-            <div>
-              Index: <input type="number" step="1" min="0" max="{{values.length-1}}" ng-model="remove.index" style="width: 50px">
-              <button ng-click="removeNode()" ng-disabled="animationDisabled || (values.length == 0)">Remove Node</button>
-            </div>
-            <div>
-              <button ng-click="loadElements(0)">1</button>
-              <button ng-click="loadElements(1)">2</button>
-              <button ng-click="loadElements(2)">3</button>
-              <button ng-click="loadElements(3)">4</button>
+
+            <div class="panel panel-default" style="max-width:800px;">
+              <div class="panel-heading">Operations</div>
+              <div class="panel-body">
+                <form class="form-inline" style="margin-bottom: 10px;">
+                  <div class="form-group">
+                    <label style="width: 50px">Size:</label>
+                    <input class="form-control" type="number" step="1" min="0" max="{{nodeLimit}}" ng-model="size" style="width: 100px">
+                  </div>
+                  <button class="btn btn-info" style="float: right"  ng-click="createList()">Create List</button>
+                </form>
+
+                <form class="form-inline" style="margin-bottom: 10px;">
+                  <div class="form-group">
+                    <label style="width: 50px">Index:</label>
+                    <input class="form-control" type="number" step="1" min="0" max="{{values.length}}" ng-model="add.index" style="width: 100px">
+                  </div>
+                  <span style="display:inline-block; width: 30px;"></span>
+                  <div class="form-group">
+                    <label style="width: 50px">Value:</label>
+                    <input class="form-control" type="number" step="1" min="0" max="{{maxValue}}" ng-model="add.value" style="width: 100px">
+                  </div>
+                  <button class="btn btn-success" style="float: right" ng-click="addNode()" ng-disabled="animationDisabled || (values.length == nodeLimit)">Add Node</button>
+                </form>
+
+                <form class="form-inline" style="margin-bottom: 10px;">
+                  <div class="form-group">
+                    <label style="width: 50px">Index:</label>
+                    <input class="form-control" type="number" step="1" min="0" max="{{values.length-1}}" ng-model="remove.index" style="width: 100px">
+                  </div>
+                  <button class="btn btn-danger" style="float: right" ng-click="removeNode()" ng-disabled="animationDisabled || (values.length == 0)">Remove Node</button>
+                </form>
+              </div>
             </div>
           </div>
         </div>

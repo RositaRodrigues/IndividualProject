@@ -19,11 +19,7 @@ angular.module("MyApp")
     $scope.maxValue = 100;
     var animationDuration = $scope.animationDuration; // ms
     var pauseDuration = 50; // ms
-    var valuesExamples = [[ ],
-                          [ 10, 15 ],
-                          [ 25, 10, 16, 19, 11 ],
-                          [ 5, 10, 16, 19, 11, 15, 20, 17 ]];
-    var values = valuesExamples[2].slice();
+    var values;
     var elements;
     var edges;
     var indexData;
@@ -32,16 +28,29 @@ angular.module("MyApp")
     var prevLabelIndex = 1;
     var nextLabelIndex = 2;
     var xTextOffset = square/2;
+
     $scope.colour = Utils.getRandomColour();
 
-    restart();
-
-    $rootScope.$on("Directive loaded", function() {
+    $rootScope.$on("Visualization loaded", function() {
       if (elements[0]) {
         $scope.constructInitialList(elements, edges, indexData, labelData);
       }
       directiveLoaded = true;
     });
+
+    $scope.createList = function() {
+      if ($scope.size) {
+        values = [];
+        for (var i = 0; i < $scope.size; i++) {
+          values.push(Math.round(Math.random() * $scope.maxValue));
+        }
+        restart();
+      }
+    }
+
+    $scope.size = 5;
+    $scope.createList();
+    restart();
 
     function restart() {
       resetScope();
@@ -52,9 +61,12 @@ angular.module("MyApp")
     }
 
     function resetScope() {
+      $scope.create = {
+        size: 0
+      }
       $scope.add = {
         index: 0,
-        value: Math.round(Math.random() * $scope.maxValue)
+        value: Math.round(Math.random() * $scope.maxValue),
       }
       $scope.remove = {
         index: 0
@@ -125,12 +137,6 @@ angular.module("MyApp")
       labelData.push(nextLabel);
     }
 
-    $scope.loadElements = function(version) {
-      values = valuesExamples[version].slice();
-      $scope.valuesVersion = version;
-      restart();
-    }
-
     function calcXPositionOfLinkedList(index, numberOfNodes) {
       return frameLinkedList(numberOfNodes) + index * (square + edgeLength);
     }
@@ -157,29 +163,30 @@ angular.module("MyApp")
       var index = $scope.add.index;
       var value = $scope.add.value;
 
-      $scope.animationDisabled = true;
+      if (index) {
+        $scope.animationDisabled = true;
 
-      var currentStep = 0;
-      if (index > 0) { // prev node exists
-        displayLabel(0, "prevLabel", prevLabelIndex);
-        currentStep++;
+        var currentStep = 0;
+        if (index > 0) { // prev node exists
+          displayLabel(0, "prevLabel", prevLabelIndex);
+          currentStep++;
 
-        animateStep(currentStep, function() {
-          moveLabelToNode(0, "prevLabel", prevLabelIndex);
-        });
-        currentStep++;
-
-        for (var i = 0; i < index-1; i++) {
-          // move label along each node until prev node
           animateStep(currentStep, function() {
-            moveLabelAlong("prevLabel", prevLabelIndex);
+            moveLabelToNode(0, "prevLabel", prevLabelIndex);
           });
           currentStep++;
-        }
-      }
 
-      if (index < values.length) { // next node exists
-        if (index == 0) { // "next node" is the head
+          for (var i = 0; i < index-1; i++) {
+            // move label along each node until prev node
+            animateStep(currentStep, function() {
+              moveLabelAlong("prevLabel", prevLabelIndex);
+            });
+            currentStep++;
+          }
+        }
+
+        if (index < values.length) { // next node exists
+          if (index == 0) { // "next node" is the head
           var labelText = "headLabel";
           var labelIndex = headLabelIndex;
         } else {
@@ -242,6 +249,7 @@ angular.module("MyApp")
           }
           $scope.updateLabelPosition("headLabel", labelData);
         });
+      }
       }
     }
 
@@ -404,33 +412,35 @@ angular.module("MyApp")
 
     $scope.removeNode = function() {
       var index = $scope.remove.index;
-      $scope.animationDisabled = true;
-      var currentStep = 0;
 
-      if (index > 0) { // prev node exists
-        // display prev label
-        animateStep(currentStep, function() {
-          displayLabel(0, "prevLabel", prevLabelIndex);
-        });
-        currentStep++;
+      if (index) {
+        $scope.animationDisabled = true;
+        var currentStep = 0;
 
-        animateStep(currentStep, function() {
-          moveLabelToNode(0, "prevLabel", prevLabelIndex);
-        });
-        currentStep++;
-
-        // move prev label along to prev node
-        for (var i = 0; i < index-1; i++) {
+        if (index > 0) { // prev node exists
+          // display prev label
           animateStep(currentStep, function() {
-            moveLabelAlong("prevLabel", prevLabelIndex);
+            displayLabel(0, "prevLabel", prevLabelIndex);
           });
           currentStep++;
-        }
-      }
 
-      // display next label if next next node exists or removing head
-      if (index == 0 || index < values.length-1) {
-        if (index == 0) { // "next node" is head
+          animateStep(currentStep, function() {
+            moveLabelToNode(0, "prevLabel", prevLabelIndex);
+          });
+          currentStep++;
+
+          // move prev label along to prev node
+          for (var i = 0; i < index-1; i++) {
+            animateStep(currentStep, function() {
+              moveLabelAlong("prevLabel", prevLabelIndex);
+            });
+            currentStep++;
+          }
+        }
+
+        // display next label if next next node exists or removing head
+        if (index == 0 || index < values.length-1) {
+          if (index == 0) { // "next node" is head
           var labelText = "headLabel";
           var labelIndex = headLabelIndex;
         } else { // next next node exists
@@ -485,6 +495,7 @@ angular.module("MyApp")
           }
           $scope.updateLabelPosition("headLabel", labelData);
         });
+      }
       }
     }
 
