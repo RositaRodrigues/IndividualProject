@@ -8,10 +8,9 @@
       <div class="container-fluid row col-lg-12">
         <div class="row">
           <div class="col-lg-12">
-            <button class="btn btn-warning" ng-click="stepBack()" ng-disabled="currentStep <= 0">Step Back</button>
-            <!-- <button class="btn btn-warning" ng-click="stepBack()" ng-disabled="animationRunning || currentStep <= 0">Step Back</button> -->
-            <button class="btn btn-warning" ng-click="pause()" ng-disabled="!animationRunning">Pause</button>
-            <button class="btn btn-warning" ng-click="play()" ng-disabled="animationRunning || currentStep == -1">Play {{currentStep}}</button>
+            <button class="btn btn-warning" style="margin-bottom: 10px;" ng-click="stepBack()" ng-disabled="currentStep <= 0">Step Back</button>
+            <button class="btn btn-warning" style="margin-bottom: 10px;" ng-click="pause()" ng-show="animationRunning" ng-disabled="!animationRunning">Pause</button>
+            <button class="btn btn-warning" style="margin-bottom: 10px;" ng-click="play()" ng-show="!animationRunning" ng-disabled="animationRunning || currentStep == -1">Play</button>
 
             <div class="panel panel-default" style="max-width:800px;">
               <div class="panel-heading">Operations</div>

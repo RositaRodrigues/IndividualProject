@@ -77,6 +77,10 @@ angular.module("MyApp")
           });
         }
       });
+      var endTime = steps.length - 1 - $scope.currentStep;
+      animateStep(endTime, function() {
+        $scope.animationRunning = false;
+      });
     }
 
     $scope.stepBack = function() {
@@ -185,7 +189,11 @@ angular.module("MyApp")
       var labelsState = state.labels;
 
       nodes.forEach(function(node, i) {
-        node.x = firstNode.x + i * (square + edgeLength);
+        if (i <= index) {
+          node.x = firstNode.x + i * (square + edgeLength);
+        } else {
+          node.x = firstNode.x + (i-1) * (square + edgeLength);
+        }
         node.y = firstNode.y;
       });
       if (state.nodes.newNode) {
@@ -208,14 +216,12 @@ angular.module("MyApp")
         }
       });
       if (state.arrows.prevArrow) {
-        console.log(state.arrows.prevArrow);
         arrows[index-1].source.x = state.arrows.prevArrow.x1;
         arrows[index-1].source.y = state.arrows.prevArrow.y1;
         arrows[index-1].target.x = state.arrows.prevArrow.x2;
         arrows[index-1].target.y = state.arrows.prevArrow.y2;
       }
       if (state.arrows.newArrow && index != (values.length-1)) {
-        console.log(state.arrows.newArrow);
         arrows[index].source.x = state.arrows.newArrow.x1;
         arrows[index].source.y = state.arrows.newArrow.y1;
         arrows[index].target.x = state.arrows.newArrow.x2;
@@ -227,8 +233,8 @@ angular.module("MyApp")
         index.y = firstIndex.y;
       });
       if (state.indices.newIndex) {
-        indices[index].x = state.indices.newIndex.x;
-        indices[index].y = state.indices.newIndex.y;
+        indices[values.length-1].x = state.indices.newIndex.x;
+        indices[values.length-1].y = state.indices.newIndex.y;
       }
 
       // labels[headLabelIndex].text = "head";
@@ -333,7 +339,6 @@ angular.module("MyApp")
       var label = currentState.labels[lableName];
       label.x = calcXPositionOfLinkedList(index, (values.length-1)) - square + xTextOffset;
       label.y = labelY;
-      // console.log(currentState);
       states.push(currentState);
       return currentState;
     }
