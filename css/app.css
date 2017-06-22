@@ -60,3 +60,16 @@ svg {
     display: block;
     margin: auto;
 }
+
+.media-control button {
+  height: 30px;
+  width: 30px;
+  border-radius: 50%;
+  border: 1px solid black;
+  background-color: black;
+  color: white;
+}
+
+.media-control button[disabled] {
+  color: #cccccc
+}

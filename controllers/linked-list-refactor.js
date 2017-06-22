@@ -83,13 +83,12 @@ angular.module("MyApp")
       });
     }
 
-    $scope.stepBack = function() {
+    function skipToStep() {
       timers.forEach(function(timer) {
         $timeout.cancel(timer);
       });
       timers = [];
 
-      $scope.currentStep--;
       loadState(states[$scope.currentStep]);
       $scope.updateAllAndTransition(nodes, arrows, indices, labels);
 
@@ -100,21 +99,24 @@ angular.module("MyApp")
       }
     }
 
-    $scope.stepForward = function() {
-      timers.forEach(function(timer) {
-        $timeout.cancel(timer);
-      });
-      timers = [];
+    $scope.skipToStart = function() {
+      $scope.currentStep = 0;
+      skipToStep();
+    }
 
+    $scope.rewind = function() {
+      $scope.currentStep--;
+      skipToStep();
+    }
+
+    $scope.fastForward = function() {
       $scope.currentStep++;
-      loadState(states[$scope.currentStep]);
-      $scope.updateAllAndTransition(nodes, arrows, indices, labels);
+      skipToStep();
+    }
 
-      if ($scope.animationRunning) {
-        animateStep(1, function() { // puts a delay to allow for transition to previous state to complete
-          $scope.play();
-        });
-      }
+    $scope.skipToEnd = function() {
+      $scope.currentStep = steps.length;
+      skipToStep();
     }
 
     $scope.addNode = function() {

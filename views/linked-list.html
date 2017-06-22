@@ -8,11 +8,14 @@
       <div class="container-fluid row col-lg-12">
         <div class="row">
           <div class="col-lg-12">
-            <button class="btn btn-warning" style="margin-bottom: 10px;" ng-click="stepBack()" ng-disabled="currentStep <= 0">Step Back</button>
-            <button class="btn btn-warning" style="margin-bottom: 10px;" ng-click="pause()" ng-show="animationRunning" ng-disabled="!animationRunning">Pause</button>
-            <button class="btn btn-warning" style="margin-bottom: 10px;" ng-click="play()" ng-show="!animationRunning" ng-disabled="animationRunning || currentStep == -1">Play</button>
-            <button class="btn btn-warning" style="margin-bottom: 10px;" ng-click="stepForward()" ng-disabled="currentStep < 0 || currentStep >= lastStep">Step Forward</button>
-
+            <div class="media-control" style="margin-bottom: 10px;">
+              <button class="glyphicon glyphicon-step-backward" ng-click="skipToStart()" ng-disabled="currentStep <= 0"></button>
+              <button class="glyphicon glyphicon-backward" ng-click="rewind()" ng-disabled="currentStep <= 0"></button>
+              <button class="glyphicon glyphicon-pause" ng-click="pause()" ng-show="animationRunning" ng-disabled="!animationRunning"></button>
+              <button class="glyphicon glyphicon-play" ng-click="play()" ng-show="!animationRunning" ng-disabled="animationRunning || currentStep == -1"></button>
+              <button class="glyphicon glyphicon-forward" ng-click="fastForward()" ng-disabled="currentStep < 0 || currentStep >= lastStep"></button>
+              <button class="glyphicon glyphicon-step-forward" ng-click="skipToEnd()" ng-disabled="currentStep < 0 || currentStep >= lastStep"></button>
+            </div>
             <div class="panel panel-default" style="max-width:800px;">
               <div class="panel-heading">Operations</div>
               <div class="panel-body">
