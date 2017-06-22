@@ -259,6 +259,20 @@ angular.module("MyApp")
                  .attr("y", function(d) { return d.y; });
         }
 
+        scope.updateAllLabels = function(labelData) {
+          labels = labels.data(labelData);
+          labels.text(function(d) { return d.text; })
+                .attr("x", function(d) { return d.x; })
+                .attr("y", function(d) { return d.y; });
+        }
+
+        scope.updateAll = function(elements, edges, indexData, labelData) {
+          scope.updateAllNodes(elements);
+          scope.updateAllArrows(edges);
+          scope.updateAllIndices(indexData);
+          scope.updateAllLabels(labelData);
+        }
+
         scope.deleteNewElements = function() {
           svg.select("#newSVGElements").data([]).exit().remove();
         }
@@ -309,6 +323,13 @@ angular.module("MyApp")
                 .text(function(d) { return d.text; })
                 .attr("x", function(d) { return d.x; })
                 .attr("y", function(d) { return d.y; });
+        }
+
+        scope.updateAllAndTransition = function(elements, edges, indexData, labelData) {
+          scope.updateAllNodesAndTransition(elements);
+          scope.updateAllArrowsAndTransition(edges);
+          scope.updateAllIndicesAndTransition(indexData);
+          scope.updateAllLabelsAndTransition(labelData);
         }
 
         scope.deleteNode = function(index) {

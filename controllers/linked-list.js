@@ -72,7 +72,7 @@ angular.module("MyApp")
       $scope.remove = {
         index: 0
       }
-      $scope.animationDisabled = false;
+      $scope.animationRunning = false;
       $scope.errorMessage = "";
       $scope.values = values;
     }
@@ -164,7 +164,7 @@ angular.module("MyApp")
       var index = $scope.add.index;
       var value = $scope.add.value;
 
-      $scope.animationDisabled = true;
+      $scope.animationRunning = true;
 
       var currentStep = 0;
       if (index > 0) { // prev node exists
@@ -413,7 +413,7 @@ angular.module("MyApp")
       var index = $scope.remove.index;
 
       if (index) {
-        $scope.animationDisabled = true;
+        $scope.animationRunning = true;
         var currentStep = 0;
 
         if (index > 0) { // prev node exists

@@ -31,13 +31,7 @@ angular.module("MyApp")
     var states = [];
     var steps = [];
     var timers = [];
-
-    $scope.pause = function() {
-      timers.forEach(function(timer) {
-        $timeout.cancel(timer);
-      });
-      timers = [];
-    }
+    var index;
 
     $scope.colour = Utils.getRandomColour();
 
@@ -49,29 +43,68 @@ angular.module("MyApp")
     });
 
     $scope.createList = function() {
-      if ($scope.size) {
-        values = [];
-        for (var i = 0; i < $scope.size; i++) {
-          values.push(Math.round(Math.random() * $scope.maxValue));
-        }
-        restart();
+      values = [];
+      for (var i = 0; i < $scope.size; i++) {
+        values.push(Math.round(Math.random() * $scope.maxValue));
       }
+      restart();
     }
 
     $scope.size = 5;
     $scope.createList();
     restart();
 
-    $scope.addNode = function() {
-      var index = $scope.add.index;
-      var value = $scope.add.value;
-      $scope.animationDisabled = true;
+    $scope.pause = function() {
+      $scope.animationRunning = false;
 
-      insertNewDataAndUpdateCollections(index, value);
+      timers.forEach(function(timer) {
+        $timeout.cancel(timer);
+      });
+      timers = [];
+    }
+
+    $scope.play = function() {
+      $scope.animationRunning = true;
+      steps.forEach(function(step, i) {
+        if (i >= $scope.currentStep) {
+          var timeoutFactor = i - $scope.currentStep;
+          var func = steps[i].function;
+          var state = steps[i].state;
+          var params = steps[i].params;
+          animateStep(timeoutFactor, function() {
+            func(state, params);
+            $scope.currentStep++;
+          });
+        }
+      });
+    }
+
+    $scope.stepBack = function() {
+      timers.forEach(function(timer) {
+        $timeout.cancel(timer);
+      });
+      timers = [];
+
+      $scope.currentStep--;
+      loadState(states[$scope.currentStep]);
+      $scope.updateAllAndTransition(nodes, arrows, indices, labels);
+
+      if ($scope.animationRunning) {
+        animateStep(1, function() { // puts a delay to allow for transition to previous state to complete
+          $scope.play();
+        });
+      }
+    }
+
+    $scope.addNode = function() {
+      index = $scope.add.index;
+      var value = $scope.add.value;
+      $scope.animationRunning = true;
+
+      insertNewDataAndUpdateCollections(value);
 
       initState()
         .then(function(previousState) {
-
           if (index > 0) {
             var currentState = displayLabelState(previousState, 0, "prev");
             var step = { // prev node exists
@@ -139,32 +172,77 @@ angular.module("MyApp")
           }
         })
         .then(function() {
-          runAnimation();
+          $scope.currentStep = 0;
+          $scope.play();
         });
 
     }
 
-    function runAnimation() {
-      $scope.currentStep = 0;
-      $scope.play();
-    }
+    function loadState(state) {
+      var firstNode = state.nodes.first;
+      var firstArrowSource = state.arrows.firstSource;
+      var firstIndex = state.indices.first;
+      var labelsState = state.labels;
 
-    $scope.play = function() {
-      steps.forEach(function(step, i) {
-        if (i >= $scope.currentStep) {
-          var timeoutFactor = i - $scope.currentStep;
-          var func = steps[i].function;
-          var state = steps[i].state;
-          var params = steps[i].params;
-          animateStep(timeoutFactor, function() {
-            func(state, params);
-            $scope.currentStep++;
-          });
+      nodes.forEach(function(node, i) {
+        node.x = firstNode.x + i * (square + edgeLength);
+        node.y = firstNode.y;
+      });
+      if (state.nodes.newNode) {
+        nodes[index].x = state.nodes.newNode.x;
+        nodes[index].y = state.nodes.newNode.y;
+      }
+
+      arrows.forEach(function(arrow, i) {
+        var source = {
+          x: firstArrowSource.x + i * (edgeLength + square),
+          y: firstArrowSource.y,
+        }
+        var target = {
+          x: source.x + edgeLength,
+          y: source.y,
+        }
+        arrow = {
+          source: source,
+          target: target
         }
       });
+      if (state.arrows.prevArrow) {
+        console.log(state.arrows.prevArrow);
+        arrows[index-1].source.x = state.arrows.prevArrow.x1;
+        arrows[index-1].source.y = state.arrows.prevArrow.y1;
+        arrows[index-1].target.x = state.arrows.prevArrow.x2;
+        arrows[index-1].target.y = state.arrows.prevArrow.y2;
+      }
+      if (state.arrows.newArrow && index != (values.length-1)) {
+        console.log(state.arrows.newArrow);
+        arrows[index].source.x = state.arrows.newArrow.x1;
+        arrows[index].source.y = state.arrows.newArrow.y1;
+        arrows[index].target.x = state.arrows.newArrow.x2;
+        arrows[index].target.y = state.arrows.newArrow.y2;
+      }
+
+      indices.forEach(function(index, i) {
+        index.x = firstIndex.x + i * (square + edgeLength);
+        index.y = firstIndex.y;
+      });
+      if (state.indices.newIndex) {
+        indices[index].x = state.indices.newIndex.x;
+        indices[index].y = state.indices.newIndex.y;
+      }
+
+      // labels[headLabelIndex].text = "head";
+      labels[headLabelIndex].x = labelsState.head.x;
+      labels[headLabelIndex].y = labelsState.head.y;
+      // labels[prevLabelIndex].text = "prev";
+      labels[prevLabelIndex].x = labelsState.prev.x;
+      labels[prevLabelIndex].y = labelsState.prev.y;
+      // labels[nextLabelIndex].text = "next";
+      labels[nextLabelIndex].x = labelsState.next.x;
+      labels[nextLabelIndex].y = labelsState.next.y;
     }
 
-    function insertNewDataAndUpdateCollections(index, value) {
+    function insertNewDataAndUpdateCollections(value) {
       values.splice(index, 0, value);
 
       $scope.appendNode();
@@ -199,7 +277,7 @@ angular.module("MyApp")
       return $q(function(resolve, reject) {
         var indicesState = {
           first: {
-            x: calcXPositionOfLinkedList(0) + xTextOffset,
+            x: calcXPositionOfLinkedList(0, (values.length-1)) + xTextOffset,
             y: indicesY,
           },
           newIndex: {
@@ -210,7 +288,7 @@ angular.module("MyApp")
 
         var nodesState = {
           first: {
-            x: calcXPositionOfLinkedList(0),
+            x: calcXPositionOfLinkedList(0, (values.length-1)),
             y: topY,
           },
           newNode: {
@@ -220,11 +298,9 @@ angular.module("MyApp")
         }
 
         var arrowsState = {
-          first: {
-            x1: nodesState.first.x + square,
-            y1: nodesState.first.y + square/2,
-            x2: nodesState.first.x + square + edgeLength,
-            y2: nodesState.first.y + square/2 + edgeLength
+          firstSource: {
+            x: nodesState.first.x + square,
+            y: nodesState.first.y + square/2
           },
           newArrow: {
             x1: -5,
@@ -235,9 +311,9 @@ angular.module("MyApp")
         }
 
         var labelsState = {
-          head: {x: 0, y: 0}, // head
-          prev: {x: 0, y: 0}, // prev
-          next: {x: 0, y: 0} // next
+          head: { },
+          prev: { },
+          next: { }
         }
 
         var currentState = {
@@ -298,6 +374,7 @@ angular.module("MyApp")
     }
 
     function resetScope() {
+      $scope.currentStep = -1;
       $scope.size = 0;
       $scope.create = {
         size: 0
@@ -309,7 +386,7 @@ angular.module("MyApp")
       $scope.remove = {
         index: 0
       }
-      $scope.animationDisabled = false;
+      $scope.animationRunning = false;
       $scope.errorMessage = "";
       $scope.values = values;
     }
@@ -356,17 +433,17 @@ angular.module("MyApp")
       // labels for labels
       var headLabel = {
         text: "head"
-        // x: not defined yet,
+        // x: not defined yet
         // y: not defined yet
       }
       var prevLabel = {
-          text: "prev"
-          // x: not defined yet,
-          // y: not defined yet
-        }
+        text: "prev"
+        // x: not defined yet
+        // y: not defined yet
+      }
       var nextLabel = {
         text: "next"
-        // x: not defined yet,
+        // x: not defined yet
         // y: not defined yet
       }
       labels.push(headLabel);
@@ -393,7 +470,7 @@ angular.module("MyApp")
     }
 
     function animateStep(step, func) {
-      var timer = $timeout(func, (animationDuration+pauseDuration)*step);
+      var timer = $timeout(func, (animationDuration + pauseDuration) * step);
       timers.push(timer);
     }
 
