@@ -61,6 +61,7 @@ angular.module("MyApp")
     }
 
     function resetScope() {
+      $scope.size = 0;
       $scope.create = {
         size: 0
       }
@@ -126,7 +127,7 @@ angular.module("MyApp")
           text: "prev"
           // x: not defined yet,
           // y: not defined yet
-        }
+      }
       var nextLabel = {
         text: "next"
         // x: not defined yet,
