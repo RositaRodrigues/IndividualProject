@@ -35,6 +35,10 @@ rect {
   fill: #95a5a6;
 }
 
+#sidebar-wrapper {
+  font-weight: bold;
+}
+
 #menu-toggle {
   width: 25px;
   height: 100%;
@@ -54,6 +58,7 @@ header {
 
 header h1 {
   float:left;
+  font-weight: bold;
 }
 
 svg {
@@ -72,4 +77,16 @@ svg {
 
 .media-control button[disabled] {
   color: #cccccc
+}
+
+.operations-panel .panel-heading {
+  border: 4px solid black;
+  background-color: black;
+  color: white;
+  font-weight: bold;
+}
+
+.operations-panel .panel-body {
+  background-color: #f2f2f2;
+  /*font-weight:bold;*/
 }
