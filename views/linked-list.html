@@ -8,6 +8,7 @@
       <div class="container-fluid row col-lg-12">
         <div class="row">
           <div class="col-lg-12">
+            <button class="btn btn-warning" ng-click="pause()">Pause</button>
 
             <div class="panel panel-default" style="max-width:800px;">
               <div class="panel-heading">Operations</div>
@@ -17,7 +18,7 @@
                     <label style="width: 50px">Size:</label>
                     <input class="form-control" type="number" step="1" min="0" max="{{nodeLimit}}" ng-model="size" style="width: 100px">
                   </div>
-                  <button class="btn btn-info" style="float: right"  ng-click="createList()">Create List</button>
+                  <button class="btn btn-info" style="float: right" ng-click="createList()">Create List</button>
                 </form>
 
                 <form class="form-inline" style="margin-bottom: 10px;">

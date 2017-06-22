@@ -30,6 +30,14 @@ angular.module("MyApp")
     var xTextOffset = square/2;
     var states = [];
     var steps = [];
+    var timers = [];
+
+    $scope.pause = function() {
+      timers.forEach(function(timer) {
+        $timeout.cancel(timer);
+      });
+      timers = [];
+    }
 
     $scope.colour = Utils.getRandomColour();
 
@@ -384,7 +392,8 @@ angular.module("MyApp")
     }
 
     function animateStep(step, func) {
-      $timeout(func, (animationDuration+pauseDuration)*step);
+      var timer = $timeout(func, (animationDuration+pauseDuration)*step);
+      timers.push(timer);
     }
 
 
