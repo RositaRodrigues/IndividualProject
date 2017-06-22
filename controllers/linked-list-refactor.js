@@ -100,6 +100,23 @@ angular.module("MyApp")
       }
     }
 
+    $scope.stepForward = function() {
+      timers.forEach(function(timer) {
+        $timeout.cancel(timer);
+      });
+      timers = [];
+
+      $scope.currentStep++;
+      loadState(states[$scope.currentStep]);
+      $scope.updateAllAndTransition(nodes, arrows, indices, labels);
+
+      if ($scope.animationRunning) {
+        animateStep(1, function() { // puts a delay to allow for transition to previous state to complete
+          $scope.play();
+        });
+      }
+    }
+
     $scope.addNode = function() {
       index = $scope.add.index;
       var value = $scope.add.value;
@@ -176,6 +193,7 @@ angular.module("MyApp")
           }
         })
         .then(function() {
+          $scope.lastStep = steps.length;
           $scope.currentStep = 0;
           $scope.play();
         });

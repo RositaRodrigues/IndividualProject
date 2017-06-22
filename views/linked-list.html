@@ -11,6 +11,7 @@
             <button class="btn btn-warning" style="margin-bottom: 10px;" ng-click="stepBack()" ng-disabled="currentStep <= 0">Step Back</button>
             <button class="btn btn-warning" style="margin-bottom: 10px;" ng-click="pause()" ng-show="animationRunning" ng-disabled="!animationRunning">Pause</button>
             <button class="btn btn-warning" style="margin-bottom: 10px;" ng-click="play()" ng-show="!animationRunning" ng-disabled="animationRunning || currentStep == -1">Play</button>
+            <button class="btn btn-warning" style="margin-bottom: 10px;" ng-click="stepForward()" ng-disabled="currentStep < 0 || currentStep >= lastStep">Step Forward</button>
 
             <div class="panel panel-default" style="max-width:800px;">
               <div class="panel-heading">Operations</div>
