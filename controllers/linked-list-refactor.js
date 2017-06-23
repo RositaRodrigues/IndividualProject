@@ -77,7 +77,7 @@ angular.module("MyApp")
           });
         }
       });
-      var endTime = steps.length - 1 - $scope.currentStep;
+      var endTime = steps.length - $scope.currentStep;
       animateStep(endTime, function() {
         $scope.animationRunning = false;
       });
@@ -90,6 +90,7 @@ angular.module("MyApp")
       timers = [];
 
       var state = states[$scope.currentStep];
+      console.log(state);
       loadState(state);
 
       if (state.nodes.newNode.visible) {
@@ -275,6 +276,20 @@ angular.module("MyApp")
             return previousState;
           }
         })
+        .then(function(previousState) {
+          if (index > 0) { // prev node exists
+            var currentState = pointFromPrevNodeToNewNodeState(previousState);
+            var step = {
+              function: updatePrevArrowStep,
+              state: currentState,
+              params: [(index-1)]
+            }
+            steps.push(step);
+            return currentState;
+          } else {
+            return previousState;
+          }
+        })
         .then(function() {
           $scope.lastStep = steps.length;
           $scope.currentStep = 0;
@@ -303,20 +318,19 @@ angular.module("MyApp")
       }
 
       arrows.forEach(function(arrow, i) {
-        var source = {
-          x: firstArrowSource.x + i * (edgeLength + square),
-          y: firstArrowSource.y,
-        }
-        var target = {
-          x: source.x + edgeLength,
-          y: source.y,
-        }
-        arrow = {
-          source: source,
-          target: target
+        arrow.source.y = firstArrowSource.y;
+        arrow.target.y = firstArrowSource.y;
+        if (i <= index) {
+          arrow.source.x = firstArrowSource.x + i * (edgeLength + square);
+          arrow.target.x = firstArrowSource.x + i * (edgeLength + square) + edgeLength;
+        } else {
+          arrow.source.x = firstArrowSource.x + (i-1) * (edgeLength + square);
+          arrow.target.x = firstArrowSource.x + (i-1) * (edgeLength + square) + edgeLength;
         }
       });
+
       if (state.arrows.prevArrow) {
+        console.log("prev arrow");
         arrows[index-1].source.x = state.arrows.prevArrow.x1;
         arrows[index-1].source.y = state.arrows.prevArrow.y1;
         arrows[index-1].target.x = state.arrows.prevArrow.x2;
@@ -443,11 +457,27 @@ angular.module("MyApp")
             y: nodesState.newNode.y
           }
         }
+
         var source = {
           x: sourceNode.x + square,
           y: sourceNode.y + square/2
         }
 
+        if (index != values.length-1) {
+          var prevArrow = {
+            x1: nodesState.first.x + (index-1) * (edgeLength + square) + square,
+            y1: nodesState.first.y + square/2,
+            x2: nodesState.first.x + index * (edgeLength + square),
+            y2: nodesState.first.y + square/2
+          }
+        } else {
+          var prevArrow = {
+            x1: nodesState.first.x + (index-1) * (edgeLength + square) + square,
+            y1: nodesState.first.y + square/2,
+            x2: nodesState.first.x + (index-1) * (edgeLength + square) + square,
+            y2: nodesState.first.y + square/2
+          }
+        }
         var arrowsState = {
           firstSource: {
             x: nodesState.first.x + square,
@@ -459,8 +489,10 @@ angular.module("MyApp")
             y1: source.y,
             x2: source.x,
             y2: source.y
-          }
+          },
+          prevArrow: prevArrow
         }
+        console.log(arrowsState.prevArrow);
 
         var labelsState = {
           head: { },
@@ -530,6 +562,15 @@ angular.module("MyApp")
     function displayNewArrowState(previousState, index) {
       var currentState = angular.copy(previousState);
       currentState.arrows.newArrow.visible = true;
+      if (index == values.length-1) {
+        var firstSource = currentState.arrows.firstSource;
+        currentState.arrows.prevArrow = {
+          x1: firstSource.x + (index-1) * (edgeLength + square),
+          y1: firstSource.y,
+          x2: firstSource.x + (index-1) * (edgeLength + square),
+          y2: firstSource.y
+        }
+      }
       states.push(currentState);
       return currentState;
     }
@@ -575,6 +616,40 @@ angular.module("MyApp")
           y: arrowState.y2
         }
       }
+      $scope.updateArrowPositionAndTransition("arrow"+arrowIndex+(arrowIndex+1), [arrows[arrowIndex]]);
+    }
+
+    function pointFromPrevNodeToNewNodeState(previousState, params) {
+      var currentState = angular.copy(previousState);
+      var firstNode = currentState.nodes.first;
+      var newNode = currentState.nodes.newNode;
+      currentState.arrows.prevArrow = {
+        x1: firstNode.x + (index-1) * (square + edgeLength) + square,
+        y1: firstNode.y + square/2,
+        x2: newNode.x + square/2,
+        y2: newNode.y
+      }
+
+      states.push(currentState);
+      return currentState;
+    }
+
+    function updatePrevArrowStep(state, params) {
+      var arrowIndex = params[0];
+      var arrowState = state.arrows.prevArrow;
+
+      var arrow = {
+        source: {
+          x: arrowState.x1,
+          y: arrowState.y1
+        },
+        target: {
+          x: arrowState.x2,
+          y: arrowState.y2
+        }
+      }
+
+      arrows[arrowIndex] = arrow;
       $scope.updateArrowPositionAndTransition("arrow"+arrowIndex+(arrowIndex+1), [arrows[arrowIndex]]);
     }
 
