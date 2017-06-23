@@ -51,6 +51,7 @@ angular.module("MyApp")
     }
 
     $scope.size = 5;
+    $scope.currentStep = -1;
     $scope.createList();
     restart();
 
@@ -80,6 +81,7 @@ angular.module("MyApp")
       var endTime = steps.length - $scope.currentStep;
       animateStep(endTime, function() {
         $scope.animationRunning = false;
+        resetScope();
       });
     }
 
@@ -90,30 +92,40 @@ angular.module("MyApp")
       timers = [];
 
       var state = states[$scope.currentStep];
-      loadState(state);
-
-      if (state.nodes.newNode.visible) {
-        $scope.setNodeVisible(index);
+      if ($scope.currentStep == states.length-1) {
+        loadLastState(state);
       } else {
-        $scope.setNodeInvisible(index);
+        loadState(state);
       }
 
-      if (index == values.length-1) {
-        var newArrowIndex = values.length-2;
-      } else {
-        var newArrowIndex = index;
+      if (state.nodes.newNode) {
+        if (state.nodes.newNode.visible) {
+          $scope.setNodeVisible(index);
+        } else {
+          $scope.setNodeInvisible(index);
+        }
       }
 
-      if (state.arrows.newArrow.visible) {
-        $scope.setArrowVisible(newArrowIndex);
-      } else {
-        $scope.setArrowInvisible(newArrowIndex);
+      if (state.arrows.newArrow) {
+        if (index == values.length-1) {
+          var newArrowIndex = values.length-2;
+        } else {
+          var newArrowIndex = index;
+        }
+
+        if (state.arrows.newArrow.visible) {
+          $scope.setArrowVisible(newArrowIndex);
+        } else {
+          $scope.setArrowInvisible(newArrowIndex);
+        }
       }
 
-      if (state.indices.newIndex.visible) {
-        $scope.setIndexVisible(values.length-1);
-      } else {
-        $scope.setIndexInvisible(values.length-1);
+      if (state.indices.newIndex) {
+        if (state.indices.newIndex.visible) {
+          $scope.setIndexVisible(values.length-1);
+        } else {
+          $scope.setIndexInvisible(values.length-1);
+        }
       }
 
       $scope.updateAllAndTransition(nodes, arrows, indices, labels);
@@ -146,9 +158,12 @@ angular.module("MyApp")
     }
 
     $scope.addNode = function() {
+      states = [];
+      steps = [];
       index = $scope.add.index;
       var value = $scope.add.value;
       $scope.animationRunning = true;
+      $scope.currentStep = -1;
 
       insertNewDataAndUpdateCollections(value);
 
@@ -337,8 +352,7 @@ angular.module("MyApp")
           arrow.target.x = firstArrowSource.x + (i-1) * (edgeLength + square) + edgeLength;
         }
       });
-
-      if (state.arrows.prevArrow) {
+      if (state.arrows.prevArrow && index != 0) {
         arrows[index-1].source.x = state.arrows.prevArrow.x1;
         arrows[index-1].source.y = state.arrows.prevArrow.y1;
         arrows[index-1].target.x = state.arrows.prevArrow.x2;
@@ -368,6 +382,37 @@ angular.module("MyApp")
       labels[nextLabelIndex].y = labelsState.next.y;
     }
 
+    function loadLastState(state) {
+      var firstNode = state.nodes.first;
+      var firstArrowSource = state.arrows.firstSource;
+      var firstIndex = state.indices.first;
+      var labelsState = state.labels;
+
+      nodes.forEach(function(node, i) {
+        node.x = firstNode.x + i * (square + edgeLength);
+        node.y = firstNode.y;
+      });
+
+      arrows.forEach(function(arrow, i) {
+        arrow.source.x = firstArrowSource.x + i * (edgeLength + square);
+        arrow.source.y = firstArrowSource.y;
+        arrow.target.x = firstArrowSource.x + i * (edgeLength + square) + edgeLength;
+        arrow.target.y = firstArrowSource.y;
+      });
+
+      indices.forEach(function(index, i) {
+        index.x = firstIndex.x + i * (square + edgeLength);
+        index.y = firstIndex.y;
+      });
+
+      labels[headLabelIndex].x = labelsState.head.x;
+      labels[headLabelIndex].y = labelsState.head.y;
+      labels[prevLabelIndex].x = labelsState.prev.x;
+      labels[prevLabelIndex].y = labelsState.prev.y;
+      labels[nextLabelIndex].x = labelsState.next.x;
+      labels[nextLabelIndex].y = labelsState.next.y;
+    }
+
     function insertNewDataAndUpdateCollections(value) {
       values.splice(index, 0, value);
 
@@ -381,7 +426,7 @@ angular.module("MyApp")
       $scope.updateAllNodes(nodes);
       $scope.setNodeInvisible(index);
 
-      if (values.length > 0) {
+      if (values.length > 1) {
         $scope.appendArrow();
 
         if (index == values.length-1) {
@@ -664,19 +709,20 @@ angular.module("MyApp")
       var currentState = angular.copy(previousState);
       currentState.indices.newIndex.visible = true;
       currentState.indices.first = {
-        x: calcXPositionOfLinkedList(0),
+        x: calcXPositionOfLinkedList(0) + xTextOffset,
         y: indicesY
       }
       currentState.nodes.first = {
         x: calcXPositionOfLinkedList(0),
         y: topY
       }
+      delete currentState.nodes.newNode;
       currentState.arrows.firstSource = {
         x: calcXPositionOfLinkedList(0) + square,
         y: topY + square/2
       }
-      currentState.arrows.prevArrow = null;
-      currentState.arrows.newArrow = null;
+      delete currentState.arrows.prevArrow;
+      delete currentState.arrows.newArrow;
 
       if (index == 0) {
         currentState.labels.head = {
@@ -703,7 +749,6 @@ angular.module("MyApp")
       convertData();
       $scope.setIndexVisible(values.length-1);
       $scope.updateAllAndTransition(nodes, arrows, indices, labels);
-
     }
 
     function restart() {
@@ -715,7 +760,6 @@ angular.module("MyApp")
     }
 
     function resetScope() {
-      $scope.currentStep = -1;
       $scope.size = 0;
       $scope.create = {
         size: 0
