@@ -90,7 +90,6 @@ angular.module("MyApp")
       timers = [];
 
       var state = states[$scope.currentStep];
-      console.log(state);
       loadState(state);
 
       if (state.nodes.newNode.visible) {
@@ -263,7 +262,7 @@ angular.module("MyApp")
           return currentState;
         })
         .then(function(previousState) {
-          if (index < values.length) { // next node exists
+          if (index < values.length - 1) { // next node exists
             var currentState = pointFromNewNodeToNextNodeState(previousState);
             var step = {
               function: updateNewArrowStep,
@@ -330,7 +329,6 @@ angular.module("MyApp")
       });
 
       if (state.arrows.prevArrow) {
-        console.log("prev arrow");
         arrows[index-1].source.x = state.arrows.prevArrow.x1;
         arrows[index-1].source.y = state.arrows.prevArrow.y1;
         arrows[index-1].target.x = state.arrows.prevArrow.x2;
@@ -522,6 +520,7 @@ angular.module("MyApp")
     }
 
     function updateLabelStep(state, params) {
+      console.log("updateLabelStep");
       var labelText = params[0];
       var labelIndex = params[1];
       var label = labels[labelIndex];
@@ -556,6 +555,7 @@ angular.module("MyApp")
     }
 
     function displayNodeStep(state, params) {
+      console.log("displayNodeStep");
       $scope.setNodeVisible(index);
     }
 
@@ -576,6 +576,7 @@ angular.module("MyApp")
     }
 
     function displayNewArrowStep(state) {
+      console.log("displayNewArrowStep");
       if (index == values.length-1) {
         // new node inserted at end of list.
         // new arrow is from prev node to new node.
@@ -604,6 +605,7 @@ angular.module("MyApp")
     }
 
     function updateNewArrowStep(state, params) {
+      console.log("updateNewArrowStep");
       var arrowIndex = params[0];
       var arrowState = state.arrows.newArrow;
       arrows[arrowIndex] = {
@@ -635,6 +637,7 @@ angular.module("MyApp")
     }
 
     function updatePrevArrowStep(state, params) {
+      console.log("updatePrevArrowStep");
       var arrowIndex = params[0];
       var arrowState = state.arrows.prevArrow;
 
