@@ -289,6 +289,16 @@ angular.module("MyApp")
             return previousState;
           }
         })
+        .then(function(previousState) {
+          var currentState = transformIntoBiggerListState(previousState);
+          var step = {
+            function: transformIntoBiggerListStep,
+            state: currentState,
+            params: [index]
+          }
+          steps.push(step);
+          return currentState;
+        })
         .then(function() {
           $scope.lastStep = steps.length;
           $scope.currentStep = 0;
@@ -490,7 +500,6 @@ angular.module("MyApp")
           },
           prevArrow: prevArrow
         }
-        console.log(arrowsState.prevArrow);
 
         var labelsState = {
           head: { },
@@ -617,7 +626,7 @@ angular.module("MyApp")
       $scope.updateArrowPositionAndTransition("arrow"+arrowIndex+(arrowIndex+1), [arrows[arrowIndex]]);
     }
 
-    function pointFromPrevNodeToNewNodeState(previousState, params) {
+    function pointFromPrevNodeToNewNodeState(previousState) {
       var currentState = angular.copy(previousState);
       var firstNode = currentState.nodes.first;
       var newNode = currentState.nodes.newNode;
@@ -649,6 +658,52 @@ angular.module("MyApp")
 
       arrows[arrowIndex] = arrow;
       $scope.updateArrowPositionAndTransition("arrow"+arrowIndex+(arrowIndex+1), [arrows[arrowIndex]]);
+    }
+
+    function transformIntoBiggerListState(previousState) {
+      var currentState = angular.copy(previousState);
+      currentState.indices.newIndex.visible = true;
+      currentState.indices.first = {
+        x: calcXPositionOfLinkedList(0),
+        y: indicesY
+      }
+      currentState.nodes.first = {
+        x: calcXPositionOfLinkedList(0),
+        y: topY
+      }
+      currentState.arrows.firstSource = {
+        x: calcXPositionOfLinkedList(0) + square,
+        y: topY + square/2
+      }
+      currentState.arrows.prevArrow = null;
+      currentState.arrows.newArrow = null;
+
+      if (index == 0) {
+        currentState.labels.head = {
+          text: "head",
+          x: calcXPositionOfLinkedList(0) + xTextOffset,
+          y: labelY
+        }
+      } else {
+        currentState.labels.head = {
+          text: "head"
+        }
+      }
+      currentState.labels.prev = {
+        text: "prev"
+      }
+      currentState.labels.next = {
+        text: "next"
+      }
+      states.push(currentState);
+      return currentState;
+    }
+
+    function transformIntoBiggerListStep(state, params) {
+      convertData();
+      $scope.setIndexVisible(values.length-1);
+      $scope.updateAllAndTransition(nodes, arrows, indices, labels);
+
     }
 
     function restart() {
