@@ -412,7 +412,6 @@ angular.module("MyApp")
     $scope.removeNode = function() {
       var index = $scope.remove.index;
 
-      if (index) {
         $scope.animationRunning = true;
         var currentStep = 0;
 
@@ -494,7 +493,6 @@ angular.module("MyApp")
           }
           $scope.updateLabelPosition("headLabel", labelData);
         });
-      }
       }
     }
 

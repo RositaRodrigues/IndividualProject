@@ -234,6 +234,14 @@ angular.module("MyApp")
              .attr("y2", function(d) { return d.target.y; });
         }
 
+        scope.updateIndexPosition = function(id, newData) {
+          svg.select("#" + id)
+             .data(newData)
+            //  .text(function(d) { return d.value; })
+             .attr("x", function(d) { return d.x; })
+             .attr("y", function(d) { return d.y; });
+        }
+
         scope.updateLabelPosition = function(id, newData) {
           if (newData) {
             labels = labels.data(newData);
@@ -404,6 +412,7 @@ angular.module("MyApp")
         }
 
         scope.updateAllAndTransition = function(elements, edges, indexData, labelData) {
+          console.log("transitioning");
           scope.updateAllNodesAndTransition(elements);
           scope.updateAllArrowsAndTransition(edges);
           scope.updateAllIndicesAndTransition(indexData);
