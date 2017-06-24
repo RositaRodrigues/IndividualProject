@@ -1026,6 +1026,20 @@ angular.module("MyApp")
           steps.push(step);
           return currentState;
         })
+        .then(function(previousState) {
+          if (index != 0 && index < values.length-1) { // next node exists and isn't the head
+            var currentState = pointFromPrevNodeToNextNodeState(previousState);
+            var step = {
+              function: pointFromPrevNodeToNextNodeStep,
+              state: currentState,
+              params: []
+            }
+            steps.push(step);
+            return currentState;
+          } else {
+            return previousState;
+          }
+        })
         .then(function() {
           $scope.lastStep = steps.length;
           $scope.currentStep = 0;
@@ -1035,34 +1049,37 @@ angular.module("MyApp")
     }
 
     function removeValueAndUpdateCollections() {
+      // remove value from values
+      values.splice(index, 1);
+
+      // create newSVGELements for removed node/arrow/index
+      // remove node/arrow/index from data models
+      // delete node/arrow/index from svg collections
+
       removedNode = nodes[index];
-      if (index == values.length-1) { // remove node from end of list and arrow before it
+      $scope.createNewNode(removedNode);
+      nodes.splice(index, 1);
+      $scope.deleteNode(index);
+
+      if (index == values.length) { // remove node from end of list and arrow before it
         removedArrow = arrows[arrows.length-1];
+        arrows.splice(arrows.length-1, 1);
+        $scope.deleteArrow(arrows.length);
       } else { // remove node from beginning/middle of list and arrow after it (belonging to it)
         removedArrow = arrows[index];
+        arrows.splice(index, 1);
+        $scope.deleteArrow(index);
       }
+      $scope.createNewArrow(removedArrow);
+
       removedIndex = {
         value: indices.length-1,
         x: indices[indices.length-1].x,
         y: indices[indices.length-1].y
       }
       removedIndex.value = indices.length-1;
-
-      // create newSVGELements for removed node, arrow, index
-      $scope.createNewNode(removedNode);
-      $scope.createNewArrow(removedArrow);
       $scope.createNewIndex(removedIndex);
-
-      // remove value from values
-      values.splice(index, 1);
-      // remove node/arrow/index from data models
-      nodes.splice(index, 1);
-      arrows.splice(index, 1);
       indices.splice(indices.length-1, 1);
-
-      // remove node/arrow/index from svg
-      $scope.deleteNode(index);
-      $scope.deleteArrow(index);
       $scope.deleteIndex();
     }
 
@@ -1190,14 +1207,47 @@ angular.module("MyApp")
       $scope.updateNodePositionAndTransition("newNode", [removedNode]);
 
       if (index > 0) { // prev arrow exists
-        var prevArrow = arrows[index-1];
-        prevArrow.target.y = removedNode.y + square/2;
-        $scope.updateArrowPositionAndTransition("arrow"+(index-1)+index, [prevArrow]);
+        if (index != values.length) {
+          var prevArrow = arrows[index-1];
+          prevArrow.target.y = removedNode.y + square/2;
+          $scope.updateArrowPositionAndTransition("arrow"+(index-1)+index, [prevArrow]);
+        } else {
+          // (note: index == values.length means removedArrow is the prev arrow and prevArrow var does not exist)
+          removedArrow.target.y = removedNode.y + square/2;
+          $scope.updateArrowPositionAndTransition("newArrowLine", [removedArrow]);
+        }
       }
       if (index < values.length-1) {  // next arrow exists
         removedArrow.source.y = removedNode.y + square/2;
         $scope.updateArrowPositionAndTransition("newArrowLine", [removedArrow]);
       }
+    }
+
+    function pointFromPrevNodeToNextNodeState(previousState) {
+      var currentState = angular.copy(previousState);
+      currentState.arrows.prevArrow = {
+        x1: currentState.nodes.removedNode.x - edgeLength,
+        y1: currentState.arrows.firstSource.y,
+        x2: currentState.nodes.removedNode.x + square + edgeLength,
+        y2: currentState.arrows.firstSource.y
+      }
+      states.push(currentState);
+      return currentState;
+    }
+
+    function pointFromPrevNodeToNextNodeStep(state) {
+      var prevArrow = arrows[index-1];
+      prevArrow = {
+        source: {
+          x: state.arrows.prevArrow.x1,
+          y: state.arrows.prevArrow.y1
+        },
+        target: {
+          x: state.arrows.prevArrow.x2,
+          y: state.arrows.prevArrow.y2
+        }
+      }
+      $scope.updateArrowPositionAndTransition("arrow"+(index-1)+index, [prevArrow]);
     }
 
     function restart() {
