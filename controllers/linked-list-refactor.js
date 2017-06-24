@@ -268,7 +268,6 @@ angular.module("MyApp")
     }
 
     function loadRemoveState(state) {
-      console.log(state);
       var firstNode = state.nodes.first;
       var firstArrowSource = state.arrows.firstSource;
       var firstIndex = state.indices.first;
@@ -284,7 +283,7 @@ angular.module("MyApp")
       });
       removedNode.x = state.nodes.removedNode.x;
       removedNode.y = state.nodes.removedNode.y;
-      $scope.updateNodePosition("newNode", [removedNode]);
+      $scope.updateNodePositionAndTransition("newNode", [removedNode]);
 
       arrows.forEach(function(arrow, i) {
         arrow.source.y = firstArrowSource.y;
@@ -297,8 +296,8 @@ angular.module("MyApp")
           arrow.target.x = firstArrowSource.x + (i+1) * (edgeLength + square) + edgeLength;
         }
       });
-      if (state.arrows.prevArrow && index != 0) {
-        prevArrow = {
+      if (state.arrows.prevArrow && index != 0 && index != (values.length-1)) {
+        arrows[index-1] = {
           source: {
             x: state.arrows.prevArrow.x1,
             y: state.arrows.prevArrow.y1
@@ -308,8 +307,10 @@ angular.module("MyApp")
             y: state.arrows.prevArrow.y2
           }
         }
+        prevArrow = arrows[index-1];
+        $scope.updateArrowPositionAndTransition("arrow"+(index-1)+index, [prevArrow]);
       }
-      if (state.arrows.newArrow && index != (values.length-1)) {
+      if (state.arrows.removedArrow && index != (values.length-1)) {
         removedArrow = {
           source: {
             x: state.arrows.removedArrow.x1,
@@ -321,10 +322,11 @@ angular.module("MyApp")
           }
         }
       }
+      // update newSVGElements arrow
       if (index == (values.length-1)) {
-        $scope.updateArrowPosition("newArrow", [prevArrow]);
+        $scope.updateArrowPositionAndTransition("newArrowLine", [prevArrow]);
       } else {
-        $scope.updateArrowPosition("newArrow", [removedArrow]);
+        $scope.updateArrowPositionAndTransition("newArrowLine", [removedArrow]);
       }
 
       indices.forEach(function(index, i) {
@@ -333,7 +335,7 @@ angular.module("MyApp")
       });
       removedIndex.x = state.indices.removedIndex.x;
       removedIndex.y = state.indices.removedIndex.y;
-      $scope.updateIndexPosition("newIndex", [removedIndex]);
+      $scope.updateIndexPositionAndTransition("newIndex", [removedIndex]);
 
       labels[headLabelIndex].x = labelsState.head.x;
       labels[headLabelIndex].y = labelsState.head.y;
@@ -1014,6 +1016,16 @@ angular.module("MyApp")
             return previousState;
           }
         })
+        .then(function(previousState) {
+          var currentState = moveNodeDownState(previousState);
+          var step = {
+            function: moveNodeDownStep,
+            state: currentState,
+            params: []
+          }
+          steps.push(step);
+          return currentState;
+        })
         .then(function() {
           $scope.lastStep = steps.length;
           $scope.currentStep = 0;
@@ -1026,7 +1038,7 @@ angular.module("MyApp")
       removedNode = nodes[index];
       if (index == values.length-1) { // remove node from end of list and arrow before it
         removedArrow = arrows[arrows.length-1];
-      } else {
+      } else { // remove node from beginning/middle of list and arrow after it (belonging to it)
         removedArrow = arrows[index];
       }
       removedIndex = {
@@ -1117,7 +1129,7 @@ angular.module("MyApp")
             // visible: false,
             x1: source.x,
             y1: source.y,
-            x2: source.x + edgeLength + square,
+            x2: source.x + edgeLength,
             y2: source.y
           },
           prevArrow: prevArrow
@@ -1141,6 +1153,52 @@ angular.module("MyApp")
       });
     }
 
+    function moveNodeDownState(previousState) {
+      var currentState = angular.copy(previousState);
+      currentState.nodes.removedNode.y = bottomY;
+      if (index < values.length) { // removed arrow is removeNode's arrow aka next arrow
+        currentState.arrows.removedArrow = {
+          x1: currentState.nodes.removedNode.x + square,
+          y1: currentState.nodes.removedNode.y + square/2,
+          x2: currentState.nodes.removedNode.x + square + edgeLength,
+          y2: currentState.arrows.firstSource.y
+        }
+      } else { // remove last node, remove arrow is last arrow in list, aka prev arrow
+        currentState.arrows.removedArrow = {
+          x1: currentState.nodes.removedNode.x - edgeLength,
+          y1: currentState.arrows.firstSource.y,
+          x2: currentState.nodes.removedNode.x,
+          y2: currentState.nodes.removedNode.y + square/2
+        }
+      }
+      if (index > 0) { // prev arrow exists
+        currentState.arrows.prevArrow = {
+          x1: currentState.nodes.removedNode.x - edgeLength,
+          y1: currentState.arrows.firstSource.y,
+          x2: currentState.nodes.removedNode.x,
+          y2: currentState.nodes.removedNode.y + square/2
+        }
+      } else {
+        currentState.arrows.prevArrow = { }
+      }
+      states.push(currentState);
+      return currentState;
+    }
+
+    function moveNodeDownStep(state) {
+      removedNode.y = state.nodes.removedNode.y;
+      $scope.updateNodePositionAndTransition("newNode", [removedNode]);
+
+      if (index > 0) { // prev arrow exists
+        var prevArrow = arrows[index-1];
+        prevArrow.target.y = removedNode.y + square/2;
+        $scope.updateArrowPositionAndTransition("arrow"+(index-1)+index, [prevArrow]);
+      }
+      if (index < values.length-1) {  // next arrow exists
+        removedArrow.source.y = removedNode.y + square/2;
+        $scope.updateArrowPositionAndTransition("newArrowLine", [removedArrow]);
+      }
+    }
 
     function restart() {
       operationType = null;
