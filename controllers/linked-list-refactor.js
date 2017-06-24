@@ -176,7 +176,6 @@ angular.module("MyApp")
               state: currentState,
               params: ["prev", prevLabelIndex]
             }
-            console.log("1");
             steps.push(step);
             return currentState;
           } else {
@@ -191,7 +190,6 @@ angular.module("MyApp")
               state: currentState,
               params: ["prev", prevLabelIndex]
             }
-            console.log("2");
             steps.push(step);
             return currentState;
           } else {
@@ -208,7 +206,6 @@ angular.module("MyApp")
                 state: currentState,
                 params: ["prev", prevLabelIndex]
               }
-              console.log("3");
               steps.push(step);
               previousState = currentState;
             }
@@ -232,7 +229,6 @@ angular.module("MyApp")
               state: currentState,
               params: [labelName, labelIndex]
             }
-            console.log("4");
             steps.push(step);
             return currentState;
           } else {
@@ -254,7 +250,6 @@ angular.module("MyApp")
               state: currentState,
               params: [labelName, labelIndex]
             }
-            console.log("5");
             steps.push(step);
             return currentState;
           } else {
@@ -268,7 +263,6 @@ angular.module("MyApp")
             state: currentState,
             params: [index]
           }
-          console.log("6");
           steps.push(step);
           return currentState;
         })
@@ -280,7 +274,6 @@ angular.module("MyApp")
               state: currentState,
               params: [index]
             }
-            console.log("7");
             steps.push(step);
             return currentState;
           } else { // originally empty list so does not need an arrow
@@ -295,7 +288,6 @@ angular.module("MyApp")
               state: currentState,
               params: [index]
             }
-            console.log("8");
             steps.push(step);
             return currentState;
           } else {
@@ -310,7 +302,6 @@ angular.module("MyApp")
               state: currentState,
               params: [(index-1)]
             }
-            console.log("9");
             steps.push(step);
             return currentState;
           } else {
@@ -324,9 +315,20 @@ angular.module("MyApp")
             state: currentState,
             params: [index]
           }
-          console.log("10");
           steps.push(step);
           return currentState;
+        })
+        .then(function(previousState) {
+          if (index == 0) { // remove head label
+            var currentState = clearHeadLabelState(previousState);
+            var step = {
+              function: transformIntoBiggerListStep,
+              state: currentState,
+              params: [index]
+            }
+            steps.push(step);
+            return currentState;
+          }
         })
         .then(function() {
           $scope.lastStep = steps.length;
@@ -801,8 +803,18 @@ angular.module("MyApp")
 
     function transformIntoBiggerListStep(state, params) {
       convertData();
+      labels[headLabelIndex] = state.labels.head;
       $scope.setIndexVisible(values.length-1);
       $scope.updateAllAndTransition(nodes, arrows, indices, labels);
+    }
+
+    function clearHeadLabelState(previousState) {
+      var currentState = angular.copy(previousState);
+      currentState.labels.head = {
+        text: "head"
+      }
+      states.push(currentState);
+      return currentState;
     }
 
     function restart() {
