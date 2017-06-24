@@ -176,6 +176,7 @@ angular.module("MyApp")
               state: currentState,
               params: ["prev", prevLabelIndex]
             }
+            console.log("1");
             steps.push(step);
             return currentState;
           } else {
@@ -190,6 +191,7 @@ angular.module("MyApp")
               state: currentState,
               params: ["prev", prevLabelIndex]
             }
+            console.log("2");
             steps.push(step);
             return currentState;
           } else {
@@ -206,6 +208,7 @@ angular.module("MyApp")
                 state: currentState,
                 params: ["prev", prevLabelIndex]
               }
+              console.log("3");
               steps.push(step);
               previousState = currentState;
             }
@@ -215,7 +218,7 @@ angular.module("MyApp")
           }
         })
         .then(function(previousState) {
-          if (index < values.length-1) { // next node exists
+          if (index < values.length-1 || values.length == 1) { // next node exists
             if (index == 0) { // "next node" is the head
               var labelName = "head";
               var labelIndex = headLabelIndex;
@@ -229,6 +232,7 @@ angular.module("MyApp")
               state: currentState,
               params: [labelName, labelIndex]
             }
+            console.log("4");
             steps.push(step);
             return currentState;
           } else {
@@ -236,7 +240,7 @@ angular.module("MyApp")
           }
         })
         .then(function(previousState) {
-          if (index < values.length-1) { // next node exists
+          if (index < values.length-1 || values.length == 1) { // next node exists
             if (index == 0) { // "next node" is the head
               var labelName = "head";
               var labelIndex = headLabelIndex;
@@ -250,6 +254,7 @@ angular.module("MyApp")
               state: currentState,
               params: [labelName, labelIndex]
             }
+            console.log("5");
             steps.push(step);
             return currentState;
           } else {
@@ -263,18 +268,24 @@ angular.module("MyApp")
             state: currentState,
             params: [index]
           }
+          console.log("6");
           steps.push(step);
           return currentState;
         })
         .then(function(previousState) {
-          var currentState = displayNewArrowState(previousState, index);
-          var step = {
-            function: displayNewArrowStep,
-            state: currentState,
-            params: [index]
+          if (values.length > 1) { // list needs new arrow
+            var currentState = displayNewArrowState(previousState, index);
+            var step = {
+              function: displayNewArrowStep,
+              state: currentState,
+              params: [index]
+            }
+            console.log("7");
+            steps.push(step);
+            return currentState;
+          } else { // originally empty list so does not need an arrow
+            return previousState;
           }
-          steps.push(step);
-          return currentState;
         })
         .then(function(previousState) {
           if (index < values.length - 1) { // next node exists
@@ -284,6 +295,7 @@ angular.module("MyApp")
               state: currentState,
               params: [index]
             }
+            console.log("8");
             steps.push(step);
             return currentState;
           } else {
@@ -298,6 +310,7 @@ angular.module("MyApp")
               state: currentState,
               params: [(index-1)]
             }
+            console.log("9");
             steps.push(step);
             return currentState;
           } else {
@@ -311,6 +324,7 @@ angular.module("MyApp")
             state: currentState,
             params: [index]
           }
+          console.log("10");
           steps.push(step);
           return currentState;
         })
@@ -353,16 +367,28 @@ angular.module("MyApp")
         }
       });
       if (state.arrows.prevArrow && index != 0) {
-        arrows[index-1].source.x = state.arrows.prevArrow.x1;
-        arrows[index-1].source.y = state.arrows.prevArrow.y1;
-        arrows[index-1].target.x = state.arrows.prevArrow.x2;
-        arrows[index-1].target.y = state.arrows.prevArrow.y2;
+        arrows[index-1] = {
+          source: {
+            x: state.arrows.prevArrow.x1,
+            y: state.arrows.prevArrow.y1
+          },
+          target: {
+            x: state.arrows.prevArrow.x2,
+            y: state.arrows.prevArrow.y2
+          }
+        }
       }
       if (state.arrows.newArrow && index != (values.length-1)) {
-        arrows[index].source.x = state.arrows.newArrow.x1;
-        arrows[index].source.y = state.arrows.newArrow.y1;
-        arrows[index].target.x = state.arrows.newArrow.x2;
-        arrows[index].target.y = state.arrows.newArrow.y2;
+        arrows[index] = {
+          source: {
+            x: state.arrows.newArrow.x1,
+            y: state.arrows.newArrow.y1
+          },
+          target: {
+            x: state.arrows.newArrow.x2,
+            y: state.arrows.newArrow.y2
+          }
+        }
       }
 
       indices.forEach(function(index, i) {
@@ -370,9 +396,24 @@ angular.module("MyApp")
         index.y = firstIndex.y;
       });
       if (state.indices.newIndex) {
-        indices[values.length-1].x = state.indices.newIndex.x;
-        indices[values.length-1].y = state.indices.newIndex.y;
+        indices[values.length-1] = {
+          x: state.indices.newIndex.x,
+          y: state.indices.newIndex.y
+        }
       }
+/*
+      labels[headLabelIndex] = {
+        x: labelsState.head.x,
+        y: labelsState.head.y
+      }
+      labels[prevLabelIndex] = {
+        x: labelsState.prev.x,
+        y: labelsState.prev.y
+      }
+      labels[nextLabelIndex] = {
+        x: labelsState.next.x,
+        y: labelsState.next.y
+      }*/
 
       labels[headLabelIndex].x = labelsState.head.x;
       labels[headLabelIndex].y = labelsState.head.y;
@@ -405,6 +446,19 @@ angular.module("MyApp")
         index.y = firstIndex.y;
       });
 
+/*
+      labels[headLabelIndex] = {
+        x: labelsState.head.x,
+        y: labelsState.head.y
+      }
+      labels[prevLabelIndex] = {
+        x: labelsState.prev.x,
+        y: labelsState.prev.y
+      }
+      labels[nextLabelIndex] = {
+        x: labelsState.next.x,
+        y: labelsState.next.y
+      }*/
       labels[headLabelIndex].x = labelsState.head.x;
       labels[headLabelIndex].y = labelsState.head.y;
       labels[prevLabelIndex].x = labelsState.prev.x;
