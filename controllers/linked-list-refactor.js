@@ -32,6 +32,7 @@ angular.module("MyApp")
     var steps = [];
     var timers = [];
     var index;
+    var operationType = null;
 
     $scope.colour = Utils.getRandomColour();
 
@@ -92,10 +93,12 @@ angular.module("MyApp")
       timers = [];
 
       var state = states[$scope.currentStep];
-      if ($scope.currentStep == states.length-1) {
-        loadLastState(state);
-      } else {
-        loadState(state);
+      if (operationType == "add") {
+        if ($scope.currentStep == states.length-1) {
+          loadLastAddState(state);
+        } else {
+          loadAddState(state);
+        }
       }
 
       if (state.nodes.newNode) {
@@ -137,7 +140,7 @@ angular.module("MyApp")
       }
     }
 
-    function loadState(state) {
+    function loadAddState(state) {
       var firstNode = state.nodes.first;
       var firstArrowSource = state.arrows.firstSource;
       var firstIndex = state.indices.first;
@@ -211,7 +214,7 @@ angular.module("MyApp")
       labels[nextLabelIndex].y = labelsState.next.y;
     }
 
-    function loadLastState(state) {
+    function loadLastAddState(state) {
       var firstNode = state.nodes.first;
       var firstArrowSource = state.arrows.firstSource;
       var firstIndex = state.indices.first;
@@ -272,15 +275,16 @@ angular.module("MyApp")
 
     $scope.addNode = function() {
       clearPreviousAnimationResults();
+      operationType = "add";
       index = $scope.add.index;
       var value = $scope.add.value;
 
       insertNewDataAndUpdateCollections(value);
 
-      initState()
+      initAddState()
         .then(function(previousState) {
           if (index > 0) { // prev node exists
-            var currentState = displayLabelState(previousState, 0, "prev");
+            var currentState = displayLabelState(previousState, 0, "prev", (values.length-1));
             var step = {
               function: updateLabelStep,
               state: currentState,
@@ -294,7 +298,7 @@ angular.module("MyApp")
         })
         .then(function(previousState) {
           if (index > 0) { // prev node exists
-            var currentState = moveLabelToNodeState(previousState, 0, "prev");
+            var currentState = moveLabelToNodeState(previousState, 0, "prev", (values.length-1));
             var step = {
               function: updateLabelStep,
               state: currentState,
@@ -333,7 +337,7 @@ angular.module("MyApp")
               var labelName = "next";
               var labelIndex = nextLabelIndex;
             }
-            var currentState = displayLabelState(previousState, index, labelName);
+            var currentState = displayLabelState(previousState, index, labelName, (values.length-1));
             var step = {
               function: updateLabelStep,
               state: currentState,
@@ -354,7 +358,7 @@ angular.module("MyApp")
               var labelName = "next";
               var labelIndex = nextLabelIndex;
             }
-            var currentState = moveLabelToNodeState(previousState, index, labelName);
+            var currentState = moveLabelToNodeState(previousState, index, labelName, (values.length-1));
             var step = {
               function: updateLabelStep,
               state: currentState,
@@ -504,7 +508,7 @@ angular.module("MyApp")
       $scope.setIndexInvisible(values.length-1);
     }
 
-    function initState() {
+    function initAddState() {
       return $q(function(resolve, reject) {
         var indicesState = {
           first: {
@@ -599,10 +603,10 @@ angular.module("MyApp")
       });
     }
 
-    function displayLabelState(previousState, index, lableName) {
+    function displayLabelState(previousState, index, lableName, listLength) {
       var currentState = angular.copy(previousState);
       var label = currentState.labels[lableName];
-      label.x = calcXPositionOfLinkedList(index, (values.length-1)) - square + xTextOffset;
+      label.x = calcXPositionOfLinkedList(index, listLength) - square + xTextOffset;
       label.y = labelY;
       states.push(currentState);
       return currentState;
@@ -617,10 +621,10 @@ angular.module("MyApp")
       $scope.updateLabelPositionAndTransition(labelText+"Label", labels);
     }
 
-    function moveLabelToNodeState(previousState, index, lableName) {
+    function moveLabelToNodeState(previousState, index, lableName, listLength) {
       var currentState = angular.copy(previousState);
       var label = currentState.labels[lableName];
-      label.x = calcXPositionOfLinkedList(index, (values.length-1)) + xTextOffset;
+      label.x = calcXPositionOfLinkedList(index, listLength) + xTextOffset;
 
       states.push(currentState);
       return currentState;
@@ -798,9 +802,45 @@ angular.module("MyApp")
 
     $scope.removeNode = function() {
       clearPreviousAnimationResults();
+      operationType = "remove";
       index = $scope.remove.index;
-
       removeValueAndUpdateCollections();
+
+      initRemoveState()
+        .then(function(previousState) {
+          if (index > 0) { // prev node exists
+            var currentState = displayLabelState(previousState, 0, "prev", (values.length+1));
+            var step = {
+              function: updateLabelStep,
+              state: currentState,
+              params: ["prev", prevLabelIndex]
+            }
+            steps.push(step);
+            return currentState;
+          } else {
+            return previousState;
+          }
+        })
+        .then(function(previousState) {
+          if (index > 0) { // prev node exists
+            var currentState = moveLabelToNodeState(previousState, 0, "prev", (values.length+1));
+            var step = {
+              function: updateLabelStep,
+              state: currentState,
+              params: ["prev", prevLabelIndex]
+            }
+            steps.push(step);
+            return currentState;
+          } else {
+            return previousState;
+          }
+        })
+        .then(function() {
+          $scope.lastStep = steps.length;
+          $scope.currentStep = 0;
+          $scope.play();
+        });
+
     }
 
     function removeValueAndUpdateCollections() {
@@ -816,19 +856,123 @@ angular.module("MyApp")
         y: indices[indices.length-1].y
       }
       indexToRemove.value = indices.length-1;
-      console.log(indices);
-      console.log(indexToRemove);
 
+      // create newSVGELements for removed node, arrow, index
       $scope.createNewNode(nodeToRemove);
       $scope.createNewArrow(arrowToRemove);
       $scope.createNewIndex(indexToRemove);
-      // create newSVGELements for removed node, arrow, index
+
       // remove value from values
+      values.splice(index, 1);
       // remove node/arrow/index from data models
-      // updateAll
+      nodes.splice(index, 1);
+      arrows.splice(index, 1);
+      indices.splice(indices.length-1, 1);
+
+      // remove node/arrow/index from svg
+      $scope.deleteNode(index);
+      $scope.deleteArrow(index);
+      $scope.deleteIndex();
     }
 
+    function initRemoveState() {
+      return $q(function(resolve, reject) {
+        var indicesState = {
+          first: {
+            x: calcXPositionOfLinkedList(0, (values.length+1)) + xTextOffset,
+            y: indicesY
+          },
+          removedIndex: {
+            // visible: false,
+            x: calcXPositionOfLinkedList(indices.length, (values.length+1)) + xTextOffset,
+            y: indicesY
+          }
+        }
+
+        var nodesState = {
+          first: {
+            x: calcXPositionOfLinkedList(0, (values.length+1)),
+            y: topY,
+          },
+          removedNode: {
+            // visible: false,
+            x: calcXPositionOfLinkedList(index, (values.length+1)),
+            y: bottomY
+          }
+        }
+
+        if (index == values.length) {
+          // node removed from end of list.
+          // arrow to remove points from penultimate node to removed node.
+          var sourceNode = {
+            x: nodesState.first.x + (values.length-1) * (square + edgeLength),
+            y: nodesState.first.y
+          }
+        } else {
+          // node removed from beginning or middle of list.
+          // arrow to remove points from removed node to next node.
+          var sourceNode = {
+            x: nodesState.removedNode.x,
+            y: nodesState.removedNode.y
+          }
+        }
+
+        var source = {
+          x: sourceNode.x + square,
+          y: sourceNode.y + square/2
+        }
+
+        // if (index != values.length) {
+          var prevArrow = {
+            x1: nodesState.first.x + (index-1) * (edgeLength + square) + square,
+            y1: nodesState.first.y + square/2,
+            x2: nodesState.first.x + index * (edgeLength + square),
+            y2: nodesState.first.y + square/2
+          }
+        /*} else {
+          var prevArrow = {
+            x1: nodesState.first.x + (index-1) * (edgeLength + square) + square,
+            y1: nodesState.first.y + square/2,
+            x2: nodesState.first.x + (index-1) * (edgeLength + square) + square,
+            y2: nodesState.first.y + square/2
+          }
+        }*/
+        var arrowsState = {
+          firstSource: {
+            x: nodesState.first.x + square,
+            y: nodesState.first.y + square/2
+          },
+          removedArrow: {
+            // visible: false,
+            x1: source.x,
+            y1: source.y,
+            x2: source.x + edgeLength + square,
+            y2: source.y
+          },
+          prevArrow: prevArrow
+        }
+
+        var labelsState = {
+          head: { },
+          prev: { },
+          next: { }
+        }
+
+        var currentState = {
+          indices: indicesState,
+          nodes: nodesState,
+          arrows: arrowsState,
+          labels: labelsState
+        }
+
+        states.push(currentState);
+        resolve(currentState);
+      });
+    }
+
+
     function restart() {
+      operationType = null;
       resetScope();
       convertData();
       if (directiveLoaded) {
