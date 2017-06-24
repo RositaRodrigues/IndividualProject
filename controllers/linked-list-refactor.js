@@ -94,8 +94,20 @@ angular.module("MyApp")
       var state = states[$scope.currentStep];
       if ($scope.currentStep == states.length-1) {
         loadLastState(state);
+        $scope.setNodeVisible(index);
+        if (index == values.length-1) {
+          var newArrowIndex = values.length-2;
+        } else {
+          var newArrowIndex = index;
+        }
+        $scope.setArrowVisible(newArrowIndex);
+        $scope.setIndexVisible(values.length-1);
       } else {
-        loadState(state);
+        if ($scope.currentStep == states.length-2 && index == 0) {
+          loadLastState(state);
+        } else {
+          loadState(state);
+        }
       }
 
       if (state.nodes.newNode) {
@@ -403,19 +415,6 @@ angular.module("MyApp")
           y: state.indices.newIndex.y
         }
       }
-/*
-      labels[headLabelIndex] = {
-        x: labelsState.head.x,
-        y: labelsState.head.y
-      }
-      labels[prevLabelIndex] = {
-        x: labelsState.prev.x,
-        y: labelsState.prev.y
-      }
-      labels[nextLabelIndex] = {
-        x: labelsState.next.x,
-        y: labelsState.next.y
-      }*/
 
       labels[headLabelIndex].x = labelsState.head.x;
       labels[headLabelIndex].y = labelsState.head.y;
@@ -437,10 +436,14 @@ angular.module("MyApp")
       });
 
       arrows.forEach(function(arrow, i) {
-        arrow.source.x = firstArrowSource.x + i * (edgeLength + square);
-        arrow.source.y = firstArrowSource.y;
-        arrow.target.x = firstArrowSource.x + i * (edgeLength + square) + edgeLength;
-        arrow.target.y = firstArrowSource.y;
+        arrow.source = {
+            x: firstArrowSource.x + i * (edgeLength + square),
+            y: firstArrowSource.y
+          }
+        arrow.target = {
+            x: firstArrowSource.x + i * (edgeLength + square) + edgeLength,
+            y: firstArrowSource.y
+          }
       });
 
       indices.forEach(function(index, i) {
@@ -448,19 +451,6 @@ angular.module("MyApp")
         index.y = firstIndex.y;
       });
 
-/*
-      labels[headLabelIndex] = {
-        x: labelsState.head.x,
-        y: labelsState.head.y
-      }
-      labels[prevLabelIndex] = {
-        x: labelsState.prev.x,
-        y: labelsState.prev.y
-      }
-      labels[nextLabelIndex] = {
-        x: labelsState.next.x,
-        y: labelsState.next.y
-      }*/
       labels[headLabelIndex].x = labelsState.head.x;
       labels[headLabelIndex].y = labelsState.head.y;
       labels[prevLabelIndex].x = labelsState.prev.x;
@@ -804,6 +794,13 @@ angular.module("MyApp")
     function transformIntoBiggerListStep(state, params) {
       convertData();
       labels[headLabelIndex] = state.labels.head;
+      $scope.setNodeVisible(index);
+      if (index == values.length-1) {
+        var newArrowIndex = values.length-2;
+      } else {
+        var newArrowIndex = index;
+      }
+      $scope.setArrowVisible(newArrowIndex);
       $scope.setIndexVisible(values.length-1);
       $scope.updateAllAndTransition(nodes, arrows, indices, labels);
     }
