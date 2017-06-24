@@ -136,8 +136,8 @@ angular.module("MyApp")
                  .attr("fill", colour);
 
           newNode.append("text")
-                 .text(function(d) { return d.value; })
                  .attr("id", "newNodeText")
+                 .text(function(d) { return d.value; })
                  .attr("x", function(d) { return d.x + xTextOffset; })
                  .attr("y", function(d) { return d.y + yTextOffset; })
                  .attr("fill", "white");
@@ -145,15 +145,31 @@ angular.module("MyApp")
 
         scope.createNewArrow = function(newEdge) {
           svg.select("#newSVGElements")
+             .append("g")
+             .attr("id", "newArrow")
              .selectAll("line")
-             .data(newEdge)
+             .data([newEdge])
              .enter()
              .append("line")
-             .attr("id", "newArrow")
+             .attr("id", "newArrowLine")
              .attr("x1", function(d) { return d.source.x; })
              .attr("y1", function(d) { return d.source.y; })
              .attr("x2", function(d) { return d.target.x; })
              .attr("y2", function(d) { return d.target.y; });
+        }
+
+        scope.createNewIndex = function(newIndex) {
+          svg.select("#newSVGElements")
+             .append("g")
+             .attr("id", "newIndex")
+             .selectAll("text")
+             .data([newIndex])
+             .enter()
+             .append("text")
+             .attr("id", "newIndexText")
+             .text(function(d) { return d.value; })
+             .attr("x", function(d) { return d.x; })
+             .attr("y", function(d) { return d.y; })
         }
 
         scope.updateNodePositionAndTransition = function(id, newData) {

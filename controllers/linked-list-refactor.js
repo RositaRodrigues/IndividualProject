@@ -137,6 +137,111 @@ angular.module("MyApp")
       }
     }
 
+    function loadState(state) {
+      var firstNode = state.nodes.first;
+      var firstArrowSource = state.arrows.firstSource;
+      var firstIndex = state.indices.first;
+      var labelsState = state.labels;
+
+      nodes.forEach(function(node, i) {
+        if (i <= index) {
+          node.x = firstNode.x + i * (square + edgeLength);
+        } else {
+          node.x = firstNode.x + (i-1) * (square + edgeLength);
+        }
+        node.y = firstNode.y;
+      });
+      if (state.nodes.newNode) {
+        nodes[index].x = state.nodes.newNode.x;
+        nodes[index].y = state.nodes.newNode.y;
+      }
+
+      arrows.forEach(function(arrow, i) {
+        arrow.source.y = firstArrowSource.y;
+        arrow.target.y = firstArrowSource.y;
+        if (i <= index) {
+          arrow.source.x = firstArrowSource.x + i * (edgeLength + square);
+          arrow.target.x = firstArrowSource.x + i * (edgeLength + square) + edgeLength;
+        } else {
+          arrow.source.x = firstArrowSource.x + (i-1) * (edgeLength + square);
+          arrow.target.x = firstArrowSource.x + (i-1) * (edgeLength + square) + edgeLength;
+        }
+      });
+      if (state.arrows.prevArrow && index != 0) {
+        arrows[index-1] = {
+          source: {
+            x: state.arrows.prevArrow.x1,
+            y: state.arrows.prevArrow.y1
+          },
+          target: {
+            x: state.arrows.prevArrow.x2,
+            y: state.arrows.prevArrow.y2
+          }
+        }
+      }
+      if (state.arrows.newArrow && index != (values.length-1)) {
+        arrows[index] = {
+          source: {
+            x: state.arrows.newArrow.x1,
+            y: state.arrows.newArrow.y1
+          },
+          target: {
+            x: state.arrows.newArrow.x2,
+            y: state.arrows.newArrow.y2
+          }
+        }
+      }
+
+      indices.forEach(function(index, i) {
+        index.x = firstIndex.x + i * (square + edgeLength);
+        index.y = firstIndex.y;
+      });
+      if (state.indices.newIndex) {
+        indices[values.length-1] = {
+          x: state.indices.newIndex.x,
+          y: state.indices.newIndex.y
+        }
+      }
+
+      labels[headLabelIndex].x = labelsState.head.x;
+      labels[headLabelIndex].y = labelsState.head.y;
+      labels[prevLabelIndex].x = labelsState.prev.x;
+      labels[prevLabelIndex].y = labelsState.prev.y;
+      labels[nextLabelIndex].x = labelsState.next.x;
+      labels[nextLabelIndex].y = labelsState.next.y;
+    }
+
+    function loadLastState(state) {
+      var firstNode = state.nodes.first;
+      var firstArrowSource = state.arrows.firstSource;
+      var firstIndex = state.indices.first;
+      var labelsState = state.labels;
+
+      nodes.forEach(function(node, i) {
+        node.x = firstNode.x + i * (square + edgeLength);
+        node.y = firstNode.y;
+      });
+
+      arrows.forEach(function(arrow, i) {
+        arrow.source.x = firstArrowSource.x + i * (edgeLength + square);
+        arrow.source.y = firstArrowSource.y;
+        arrow.target.x = firstArrowSource.x + i * (edgeLength + square) + edgeLength;
+        arrow.target.y = firstArrowSource.y;
+      });
+
+      indices.forEach(function(index, i) {
+        index.x = firstIndex.x + i * (square + edgeLength);
+        index.y = firstIndex.y;
+      });
+
+      labels[headLabelIndex].x = labelsState.head.x;
+      labels[headLabelIndex].y = labelsState.head.y;
+      labels[prevLabelIndex].x = labelsState.prev.x;
+      labels[prevLabelIndex].y = labelsState.prev.y;
+      labels[nextLabelIndex].x = labelsState.next.x;
+      labels[nextLabelIndex].y = labelsState.next.y;
+    }
+
     $scope.skipToStart = function() {
       $scope.currentStep = 0;
       skipToStep();
@@ -157,13 +262,18 @@ angular.module("MyApp")
       skipToStep();
     }
 
-    $scope.addNode = function() {
+    function clearPreviousAnimationResults() {
       states = [];
       steps = [];
-      index = $scope.add.index;
-      var value = $scope.add.value;
       $scope.animationRunning = true;
       $scope.currentStep = -1;
+      // clear newSVGElements
+    }
+
+    $scope.addNode = function() {
+      clearPreviousAnimationResults();
+      index = $scope.add.index;
+      var value = $scope.add.value;
 
       insertNewDataAndUpdateCollections(value);
 
@@ -336,137 +446,6 @@ angular.module("MyApp")
           $scope.play();
         });
 
-    }
-
-    function loadState(state) {
-      var firstNode = state.nodes.first;
-      var firstArrowSource = state.arrows.firstSource;
-      var firstIndex = state.indices.first;
-      var labelsState = state.labels;
-
-      nodes.forEach(function(node, i) {
-        if (i <= index) {
-          node.x = firstNode.x + i * (square + edgeLength);
-        } else {
-          node.x = firstNode.x + (i-1) * (square + edgeLength);
-        }
-        node.y = firstNode.y;
-      });
-      if (state.nodes.newNode) {
-        nodes[index].x = state.nodes.newNode.x;
-        nodes[index].y = state.nodes.newNode.y;
-      }
-
-      arrows.forEach(function(arrow, i) {
-        arrow.source.y = firstArrowSource.y;
-        arrow.target.y = firstArrowSource.y;
-        if (i <= index) {
-          arrow.source.x = firstArrowSource.x + i * (edgeLength + square);
-          arrow.target.x = firstArrowSource.x + i * (edgeLength + square) + edgeLength;
-        } else {
-          arrow.source.x = firstArrowSource.x + (i-1) * (edgeLength + square);
-          arrow.target.x = firstArrowSource.x + (i-1) * (edgeLength + square) + edgeLength;
-        }
-      });
-      if (state.arrows.prevArrow && index != 0) {
-        arrows[index-1] = {
-          source: {
-            x: state.arrows.prevArrow.x1,
-            y: state.arrows.prevArrow.y1
-          },
-          target: {
-            x: state.arrows.prevArrow.x2,
-            y: state.arrows.prevArrow.y2
-          }
-        }
-      }
-      if (state.arrows.newArrow && index != (values.length-1)) {
-        arrows[index] = {
-          source: {
-            x: state.arrows.newArrow.x1,
-            y: state.arrows.newArrow.y1
-          },
-          target: {
-            x: state.arrows.newArrow.x2,
-            y: state.arrows.newArrow.y2
-          }
-        }
-      }
-
-      indices.forEach(function(index, i) {
-        index.x = firstIndex.x + i * (square + edgeLength);
-        index.y = firstIndex.y;
-      });
-      if (state.indices.newIndex) {
-        indices[values.length-1] = {
-          x: state.indices.newIndex.x,
-          y: state.indices.newIndex.y
-        }
-      }
-/*
-      labels[headLabelIndex] = {
-        x: labelsState.head.x,
-        y: labelsState.head.y
-      }
-      labels[prevLabelIndex] = {
-        x: labelsState.prev.x,
-        y: labelsState.prev.y
-      }
-      labels[nextLabelIndex] = {
-        x: labelsState.next.x,
-        y: labelsState.next.y
-      }*/
-
-      labels[headLabelIndex].x = labelsState.head.x;
-      labels[headLabelIndex].y = labelsState.head.y;
-      labels[prevLabelIndex].x = labelsState.prev.x;
-      labels[prevLabelIndex].y = labelsState.prev.y;
-      labels[nextLabelIndex].x = labelsState.next.x;
-      labels[nextLabelIndex].y = labelsState.next.y;
-    }
-
-    function loadLastState(state) {
-      var firstNode = state.nodes.first;
-      var firstArrowSource = state.arrows.firstSource;
-      var firstIndex = state.indices.first;
-      var labelsState = state.labels;
-
-      nodes.forEach(function(node, i) {
-        node.x = firstNode.x + i * (square + edgeLength);
-        node.y = firstNode.y;
-      });
-
-      arrows.forEach(function(arrow, i) {
-        arrow.source.x = firstArrowSource.x + i * (edgeLength + square);
-        arrow.source.y = firstArrowSource.y;
-        arrow.target.x = firstArrowSource.x + i * (edgeLength + square) + edgeLength;
-        arrow.target.y = firstArrowSource.y;
-      });
-
-      indices.forEach(function(index, i) {
-        index.x = firstIndex.x + i * (square + edgeLength);
-        index.y = firstIndex.y;
-      });
-
-/*
-      labels[headLabelIndex] = {
-        x: labelsState.head.x,
-        y: labelsState.head.y
-      }
-      labels[prevLabelIndex] = {
-        x: labelsState.prev.x,
-        y: labelsState.prev.y
-      }
-      labels[nextLabelIndex] = {
-        x: labelsState.next.x,
-        y: labelsState.next.y
-      }*/
-      labels[headLabelIndex].x = labelsState.head.x;
-      labels[headLabelIndex].y = labelsState.head.y;
-      labels[prevLabelIndex].x = labelsState.prev.x;
-      labels[prevLabelIndex].y = labelsState.prev.y;
-      labels[nextLabelIndex].x = labelsState.next.x;
-      labels[nextLabelIndex].y = labelsState.next.y;
     }
 
     function insertNewDataAndUpdateCollections(value) {
@@ -815,6 +794,38 @@ angular.module("MyApp")
       }
       states.push(currentState);
       return currentState;
+    }
+
+    $scope.removeNode = function() {
+      clearPreviousAnimationResults();
+      index = $scope.remove.index;
+
+      removeValueAndUpdateCollections();
+    }
+
+    function removeValueAndUpdateCollections() {
+      var nodeToRemove = nodes[index];
+      if (index == values.length-1) { // remove node from end of list and arrow before it
+        var arrowToRemove = arrows[arrows.length-1];
+      } else {
+        var arrowToRemove = arrows[index];
+      }
+      var indexToRemove = {
+        value: indices.length-1,
+        x: indices[indices.length-1].x,
+        y: indices[indices.length-1].y
+      }
+      indexToRemove.value = indices.length-1;
+      console.log(indices);
+      console.log(indexToRemove);
+
+      $scope.createNewNode(nodeToRemove);
+      $scope.createNewArrow(arrowToRemove);
+      $scope.createNewIndex(indexToRemove);
+      // create newSVGELements for removed node, arrow, index
+      // remove value from values
+      // remove node/arrow/index from data models
+      // updateAll
     }
 
     function restart() {

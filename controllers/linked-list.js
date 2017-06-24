@@ -303,7 +303,7 @@ angular.module("MyApp")
         source: source,
         target: source
       }
-      $scope.createNewArrow([newEdge]);
+      $scope.createNewArrow(newEdge);
       return newEdge;
     }
 
