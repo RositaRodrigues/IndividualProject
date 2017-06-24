@@ -96,8 +96,20 @@ angular.module("MyApp")
       if (operationType == "add") {
         if ($scope.currentStep == states.length-1) {
           loadLastAddState(state);
+          $scope.setNodeVisible(index);
+          if (index == values.length-1) {
+            var newArrowIndex = values.length-2;
+          } else {
+            var newArrowIndex = index;
+          }
+          $scope.setArrowVisible(newArrowIndex);
+          $scope.setIndexVisible(values.length-1);
         } else {
-          loadAddState(state);
+          if ($scope.currentStep == states.length-2 && index == 0) {
+            loadLastAddState(state);
+          } else {
+            loadAddState(state);
+          }
         }
       }
 
@@ -226,10 +238,14 @@ angular.module("MyApp")
       });
 
       arrows.forEach(function(arrow, i) {
-        arrow.source.x = firstArrowSource.x + i * (edgeLength + square);
-        arrow.source.y = firstArrowSource.y;
-        arrow.target.x = firstArrowSource.x + i * (edgeLength + square) + edgeLength;
-        arrow.target.y = firstArrowSource.y;
+        arrow.source = {
+            x: firstArrowSource.x + i * (edgeLength + square),
+            y: firstArrowSource.y
+          }
+        arrow.target = {
+            x: firstArrowSource.x + i * (edgeLength + square) + edgeLength,
+            y: firstArrowSource.y
+          }
       });
 
       indices.forEach(function(index, i) {
@@ -449,7 +465,6 @@ angular.module("MyApp")
           $scope.currentStep = 0;
           $scope.play();
         });
-
     }
 
     function insertNewDataAndUpdateCollections(value) {
@@ -787,6 +802,13 @@ angular.module("MyApp")
     function transformIntoBiggerListStep(state, params) {
       convertData();
       labels[headLabelIndex] = state.labels.head;
+      $scope.setNodeVisible(index);
+      if (index == values.length-1) {
+        var newArrowIndex = values.length-2;
+      } else {
+        var newArrowIndex = index;
+      }
+      $scope.setArrowVisible(newArrowIndex);
       $scope.setIndexVisible(values.length-1);
       $scope.updateAllAndTransition(nodes, arrows, indices, labels);
     }
