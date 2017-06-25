@@ -37,6 +37,7 @@ angular.module("MyApp")
     var timers = [];
     var index;
     var operationType = null;
+    var invisibleNewSVGElements = false;
 
     $scope.colour = Utils.getRandomColour();
 
@@ -116,7 +117,11 @@ angular.module("MyApp")
           }
         }
       } else {
-        loadRemoveState(state);
+        if ($scope.currentStep == states.length-1) {
+          loadLastRemoveState(state);
+        } else {
+          loadRemoveState(state);
+        }
       }
 
       if (state.nodes.newNode) {
@@ -343,6 +348,74 @@ angular.module("MyApp")
       labels[prevLabelIndex].y = labelsState.prev.y;
       labels[nextLabelIndex].x = labelsState.next.x;
       labels[nextLabelIndex].y = labelsState.next.y;
+
+      if (state.svgElementsVisible) {
+        $scope.setNewSVGElementsVisible();
+      } else {
+        $scope.setNewSVGElementsInvisible();
+      }
+    }
+
+    function loadLastRemoveState(state) {
+      var firstNode = state.nodes.first;
+      var firstArrowSource = state.arrows.firstSource;
+      var firstIndex = state.indices.first;
+      var labelsState = state.labels;
+
+      nodes.forEach(function(node, i) {
+        node.x = firstNode.x + i * (square + edgeLength);
+        node.y = firstNode.y;
+      });
+      removedNode.x = state.nodes.removedNode.x;
+      removedNode.y = state.nodes.removedNode.y;
+      $scope.updateNodePositionAndTransition("newNode", [removedNode]);
+
+      arrows.forEach(function(arrow, i) {
+        arrow.source.y = firstArrowSource.y;
+        arrow.target.y = firstArrowSource.y;
+        arrow.source.x = firstArrowSource.x + i * (edgeLength + square);
+        arrow.target.x = firstArrowSource.x + i * (edgeLength + square) + edgeLength;
+      });
+
+      if (state.arrows.removedArrow && index != (values.length-1)) {
+        removedArrow = {
+          source: {
+            x: state.arrows.removedArrow.x1,
+            y: state.arrows.removedArrow.y1
+          },
+          target: {
+            x: state.arrows.removedArrow.x2,
+            y: state.arrows.removedArrow.y2
+          }
+        }
+      }
+      // update newSVGElements arrow
+      if (index == (values.length-1)) {
+        $scope.updateArrowPositionAndTransition("newArrowLine", [arrows[arrows.length-1]]);
+      } else {
+        $scope.updateArrowPositionAndTransition("newArrowLine", [removedArrow]);
+      }
+
+      indices.forEach(function(index, i) {
+        index.x = firstIndex.x + i * (square + edgeLength);
+        index.y = firstIndex.y;
+      });
+      removedIndex.x = state.indices.removedIndex.x;
+      removedIndex.y = state.indices.removedIndex.y;
+      $scope.updateIndexPositionAndTransition("newIndex", [removedIndex]);
+
+      labels[headLabelIndex].x = labelsState.head.x;
+      labels[headLabelIndex].y = labelsState.head.y;
+      labels[prevLabelIndex].x = labelsState.prev.x;
+      labels[prevLabelIndex].y = labelsState.prev.y;
+      labels[nextLabelIndex].x = labelsState.next.x;
+      labels[nextLabelIndex].y = labelsState.next.y;
+
+      if (state.svgElementsVisible) {
+        $scope.setNewSVGElementsVisible();
+      } else {
+        $scope.setNewSVGElementsInvisible();
+      }
     }
 
     $scope.skipToStart = function() {
@@ -370,7 +443,7 @@ angular.module("MyApp")
       steps = [];
       $scope.animationRunning = true;
       $scope.currentStep = -1;
-      // clear newSVGElements
+      $scope.deleteNewElements();
     }
 
     $scope.addNode = function() {
@@ -1040,6 +1113,16 @@ angular.module("MyApp")
             return previousState;
           }
         })
+        .then(function(previousState) {
+          var currentState = transformIntoSmallerListState(previousState);
+          var step = {
+            function: transformIntoSmallerListStep,
+            state: currentState,
+            params: []
+          }
+          steps.push(step);
+          return currentState;
+        })
         .then(function() {
           $scope.lastStep = steps.length;
           $scope.currentStep = 0;
@@ -1162,7 +1245,8 @@ angular.module("MyApp")
           indices: indicesState,
           nodes: nodesState,
           arrows: arrowsState,
-          labels: labelsState
+          labels: labelsState,
+          svgElementsVisible: true
         }
 
         states.push(currentState);
@@ -1248,6 +1332,56 @@ angular.module("MyApp")
         }
       }
       $scope.updateArrowPositionAndTransition("arrow"+(index-1)+index, [prevArrow]);
+    }
+
+    function transformIntoSmallerListState(previousState) {
+      var currentState = angular.copy(previousState);
+      currentState.indices.first = {
+        x: calcXPositionOfLinkedList(0) + xTextOffset,
+        y: indicesY
+      }
+      // delete currentState.indices.removedIndex;
+
+      currentState.nodes.first = {
+        x: calcXPositionOfLinkedList(0),
+        y: topY
+      }
+      // delete currentState.nodes.removedNode;
+
+      currentState.arrows.firstSource = {
+        x: calcXPositionOfLinkedList(0) + square,
+        y: topY + square/2
+      }
+      // delete currentState.arrows.prevArrow;
+      // delete currentState.arrows.removedArrow;
+
+      if (index == 0) {
+        currentState.labels.head = {
+          text: "head",
+          x: calcXPositionOfLinkedList(0) + xTextOffset,
+          y: labelY
+        }
+      } else {
+        currentState.labels.head = {
+          text: "head"
+        }
+      }
+      currentState.labels.prev = {
+        text: "prev"
+      }
+      currentState.labels.next = {
+        text: "next"
+      }
+      currentState.svgElementsVisible = false;
+      states.push(currentState);
+      return currentState;
+    }
+
+    function transformIntoSmallerListStep(state) {
+      convertData();
+      labels[headLabelIndex] = state.labels.head;
+      $scope.setNewSVGElementsInvisible();
+      $scope.updateAllAndTransition(nodes, arrows, indices, labels);
     }
 
     function restart() {

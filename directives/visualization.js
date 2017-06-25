@@ -369,6 +369,20 @@ angular.module("MyApp")
              .attr("display", "inline");
         }
 
+        scope.setNewSVGElementsInvisible = function() {
+          svg.select("#newSVGElements")
+             .transition()
+             .duration(animationDuration)
+             .attr("display", "none");
+        }
+
+        scope.setNewSVGElementsVisible = function() {
+          svg.select("#newSVGElements")
+             .transition()
+             .duration(animationDuration)
+             .attr("display", "inline");
+        }
+
         scope.deleteNewElements = function() {
           svg.select("#newSVGElements").data([]).exit().remove();
         }
