@@ -1138,7 +1138,7 @@ angular.module("MyApp")
           return currentState;
         })
         .then(function(previousState) {
-          if (index == 0) { // remove head label
+          if (index == 0 && values.length != 0) { // remove head label
             var currentState = clearHeadLabelState(previousState);
             var step = {
               function: transformIntoSmallerListStep,
@@ -1170,17 +1170,19 @@ angular.module("MyApp")
       $scope.deleteNode(index);
       $scope.updateAllNodes(nodes);
 
-      if (index == values.length) { // remove node from end of list and arrow before it
-        removedArrow = arrows[arrows.length-1];
-        arrows.splice(arrows.length-1, 1);
-        $scope.deleteArrow(arrows.length);
-      } else { // remove node from beginning/middle of list and arrow after it (belonging to it)
-        removedArrow = arrows[index];
-        arrows.splice(index, 1);
-        $scope.deleteArrow(index);
+      if (values.length != 0) { // originally only head existed, no arrows to remove
+        if (index == values.length) { // remove node from end of list and arrow before it
+          removedArrow = arrows[arrows.length-1];
+          arrows.splice(arrows.length-1, 1);
+          $scope.deleteArrow(arrows.length);
+        } else { // remove node from beginning/middle of list and arrow after it (belonging to it)
+          removedArrow = arrows[index];
+          arrows.splice(index, 1);
+          $scope.deleteArrow(index);
+        }
+        $scope.createNewArrow(removedArrow);
+        $scope.updateAllArrows(arrows);
       }
-      $scope.createNewArrow(removedArrow);
-      $scope.updateAllArrows(arrows);
 
       removedIndex = {
         value: indices.length-1,
@@ -1381,7 +1383,7 @@ angular.module("MyApp")
         y: topY + square/2
       }
 
-      if (index == 0) {
+      if (index == 0 && values.length != 0) {
         currentState.labels.head = {
           text: "head",
           x: calcXPositionOfLinkedList(0) + xTextOffset,
