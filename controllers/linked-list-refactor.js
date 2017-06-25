@@ -118,7 +118,7 @@ angular.module("MyApp")
           }
         }
       } else {
-        if ($scope.currentStep == states.length-1) {
+        if ($scope.currentStep == states.length-1 || ($scope.currentStep == states.length-2 && index == 0)) {
           loadLastRemoveState(state);
         } else {
           loadRemoveState(state);
@@ -348,15 +348,17 @@ angular.module("MyApp")
         x: labelsState.head.x,
         y: labelsState.head.y
       }
-      /*
-      labels[headLabelIndex].x = labelsState.head.x;
-      labels[headLabelIndex].y = labelsState.head.y;
-      labels[headLabelIndex] = labelsState.head;
-      */
-      labels[prevLabelIndex].x = labelsState.prev.x;
-      labels[prevLabelIndex].y = labelsState.prev.y;
-      labels[nextLabelIndex].x = labelsState.next.x;
-      labels[nextLabelIndex].y = labelsState.next.y;
+      labels[prevLabelIndex] = {
+        text: "prev",
+        x: labelsState.prev.x,
+        y: labelsState.prev.y
+      }
+      labels[nextLabelIndex] = {
+        text: "next",
+        x: labelsState.next.x,
+        y: labelsState.next.y
+      }
+
       if (state.svgElementsVisible) {
         $scope.setNewSVGElementsVisible();
       } else {
@@ -1131,6 +1133,18 @@ angular.module("MyApp")
           steps.push(step);
           return currentState;
         })
+        .then(function(previousState) {
+          if (index == 0) { // remove head label
+            var currentState = clearHeadLabelState(previousState);
+            var step = {
+              function: transformIntoSmallerListStep,
+              state: currentState,
+              params: [index]
+            }
+            steps.push(step);
+            return currentState;
+          }
+        })
         .then(function() {
           $scope.lastStep = steps.length;
           $scope.currentStep = 0;
@@ -1378,7 +1392,11 @@ angular.module("MyApp")
 
     function transformIntoSmallerListStep(state) {
       convertData();
-      labels[headLabelIndex] = state.labels.head;
+      labels[headLabelIndex] = {
+        text: "head",
+        x: state.labels.head.x,
+        y: state.labels.head.y
+      }
       $scope.setNewSVGElementsInvisible();
       $scope.updateAllAndTransition(nodes, arrows, indices, labels);
     }
