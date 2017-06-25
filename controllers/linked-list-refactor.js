@@ -454,6 +454,8 @@ angular.module("MyApp")
       $scope.animationRunning = true;
       $scope.currentStep = -1;
       $scope.deleteNewElements();
+      convertData();
+      $scope.setAllVisible();
     }
 
     $scope.addNode = function() {
@@ -678,6 +680,8 @@ angular.module("MyApp")
         arrows.splice(index, 0, newArrow);
         $scope.updateAllArrows(arrows);
         $scope.setArrowInvisible(newArrowIndex);
+
+        $scope.updateAllLabels(labels);
       }
 
       $scope.appendIndex();
@@ -1150,7 +1154,6 @@ angular.module("MyApp")
           $scope.currentStep = 0;
           $scope.play();
         });
-
     }
 
     function removeValueAndUpdateCollections() {
@@ -1165,6 +1168,7 @@ angular.module("MyApp")
       $scope.createNewNode(removedNode);
       nodes.splice(index, 1);
       $scope.deleteNode(index);
+      $scope.updateAllNodes(nodes);
 
       if (index == values.length) { // remove node from end of list and arrow before it
         removedArrow = arrows[arrows.length-1];
@@ -1176,6 +1180,7 @@ angular.module("MyApp")
         $scope.deleteArrow(index);
       }
       $scope.createNewArrow(removedArrow);
+      $scope.updateAllArrows(arrows);
 
       removedIndex = {
         value: indices.length-1,
@@ -1186,6 +1191,9 @@ angular.module("MyApp")
       $scope.createNewIndex(removedIndex);
       indices.splice(indices.length-1, 1);
       $scope.deleteIndex();
+      $scope.updateAllIndices(indices);
+
+      $scope.updateAllLabels(labels);
     }
 
     function initRemoveState() {

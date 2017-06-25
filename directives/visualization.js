@@ -369,6 +369,16 @@ angular.module("MyApp")
              .attr("display", "inline");
         }
 
+        scope.setAllVisible = function() {
+          nodes.attr("display", "inline");
+
+          arrows.attr("display", "inline");
+
+          indices.attr("display", "inline");
+
+          labels.attr("display", "inline");
+        }
+
         scope.setNewSVGElementsInvisible = function() {
           svg.select("#newSVGElements")
              .transition()
