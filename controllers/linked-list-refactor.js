@@ -98,6 +98,7 @@ angular.module("MyApp")
       timers = [];
 
       var state = states[$scope.currentStep];
+
       if (operationType == "add") {
         if ($scope.currentStep == states.length-1) {
           loadLastAddState(state);
@@ -342,13 +343,20 @@ angular.module("MyApp")
       removedIndex.y = state.indices.removedIndex.y;
       $scope.updateIndexPositionAndTransition("newIndex", [removedIndex]);
 
+      labels[headLabelIndex] = {
+        text: "head",
+        x: labelsState.head.x,
+        y: labelsState.head.y
+      }
+      /*
       labels[headLabelIndex].x = labelsState.head.x;
       labels[headLabelIndex].y = labelsState.head.y;
+      labels[headLabelIndex] = labelsState.head;
+      */
       labels[prevLabelIndex].x = labelsState.prev.x;
       labels[prevLabelIndex].y = labelsState.prev.y;
       labels[nextLabelIndex].x = labelsState.next.x;
       labels[nextLabelIndex].y = labelsState.next.y;
-
       if (state.svgElementsVisible) {
         $scope.setNewSVGElementsVisible();
       } else {
@@ -1340,20 +1348,16 @@ angular.module("MyApp")
         x: calcXPositionOfLinkedList(0) + xTextOffset,
         y: indicesY
       }
-      // delete currentState.indices.removedIndex;
 
       currentState.nodes.first = {
         x: calcXPositionOfLinkedList(0),
         y: topY
       }
-      // delete currentState.nodes.removedNode;
 
       currentState.arrows.firstSource = {
         x: calcXPositionOfLinkedList(0) + square,
         y: topY + square/2
       }
-      // delete currentState.arrows.prevArrow;
-      // delete currentState.arrows.removedArrow;
 
       if (index == 0) {
         currentState.labels.head = {
@@ -1362,17 +1366,12 @@ angular.module("MyApp")
           y: labelY
         }
       } else {
-        currentState.labels.head = {
-          text: "head"
-        }
+        currentState.labels.head = { text: "head" }
       }
-      currentState.labels.prev = {
-        text: "prev"
-      }
-      currentState.labels.next = {
-        text: "next"
-      }
+      currentState.labels.prev = { text: "prev" }
+      currentState.labels.next = { text: "next" }
       currentState.svgElementsVisible = false;
+
       states.push(currentState);
       return currentState;
     }
